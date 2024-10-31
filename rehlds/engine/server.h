@@ -466,7 +466,12 @@ void SV_SendResources(sizebuf_t *msg);
 void SV_SendResources_internal(sizebuf_t *msg);
 void SV_WriteClientdataToMessage(client_t *client, sizebuf_t *msg);
 void SV_WriteSpawn(sizebuf_t *msg);
+<<<<<<< HEAD
 void SV_SendUserReg(sizebuf_t *msg, UserMsg *pUserMsgs);
+=======
+void SV_SendUserReg(sizebuf_t* msg);
+void SV_SendUserReg_internal(sizebuf_t *msg);
+>>>>>>> 594d8e9... add user init msg hooks
 void SV_New_f(void);
 void SV_SendRes_f(void);
 void SV_Spawn_f(void);
@@ -555,6 +560,7 @@ void SV_EmitPings_internal(client_t *client, sizebuf_t *msg);
 void SV_WriteEntitiesToClient(client_t *client, sizebuf_t *msg);
 void SV_CleanupEnts(void);
 qboolean SV_SendClientDatagram(client_t *client);
+qboolean SV_SendClientDatagram_internal(client_t* client);
 void SV_UpdateUserInfo(client_t *client);
 void SV_UpdateToReliableMessages(void);
 void SV_SkipUpdates(void);
@@ -570,6 +576,8 @@ void SV_ClearCaches(void);
 void SV_PropagateCustomizations(void);
 void SV_WriteVoiceCodec(sizebuf_t *pBuf);
 void SV_WriteVoiceCodec_internal(sizebuf_t *pBuf);
+void SV_WriteBaselineMessage();
+void SV_WriteBaselineMessage_internal();
 void SV_CreateBaseline(void);
 void SV_BroadcastCommand(char *fmt, ...);
 void SV_BuildReconnect(sizebuf_t *msg);
