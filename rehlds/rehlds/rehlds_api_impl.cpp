@@ -598,6 +598,7 @@ RehldsFuncs_t g_RehldsApiFuncs =
 	&GetHostFrameTime_api,
 	&GetFirstCmdFunctionHandle_api,
 	&SetServerPause,
+	&DELTA_Load
 };
 
 bool EXT_FUNC SV_EmitSound2_internal(edict_t *entity, IGameClient *pReceiver, int channel, const char *sample, float volume, float attenuation, int flags, int pitch, int emitFlags, const float *pOrigin)

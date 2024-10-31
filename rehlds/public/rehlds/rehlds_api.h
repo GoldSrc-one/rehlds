@@ -437,6 +437,9 @@ struct RehldsFuncs_t {
 
 	// Pause
 	void(*SetServerPause)(bool status);
+
+	// Delta functions
+	qboolean(*DELTA_Load)(char* name, struct delta_s** ppdesc, char* pszFile);
 };
 
 class IRehldsApi {
