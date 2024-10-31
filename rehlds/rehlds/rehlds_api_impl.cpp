@@ -424,6 +424,13 @@ void EXT_FUNC RemoveExtDll_api(void *hModule)
 	}
 }
 
+void* EXT_FUNC GetExtDll_api(int iExtDll) {
+	if(iExtDll < 0 || iExtDll >= g_iextdllMac)
+		return NULL;
+
+	return g_rgextdll[iExtDll].lDLLHandle;
+}
+
 void EXT_FUNC AddCvarListener_api(const char *var_name, cvar_callback_t func)
 {
 	cvar_t *var = Cvar_FindVar(var_name);
@@ -527,6 +534,7 @@ RehldsFuncs_t g_RehldsApiFuncs =
 	&AddCvarListener_api,
 	&RemoveExtDll_api,
 	&RemoveCvarListener_api,
+	&GetExtDll_api,
 	&GetEntityInit_api,
 	&MSG_ReadChar_api,
 	&MSG_ReadByte_api,
