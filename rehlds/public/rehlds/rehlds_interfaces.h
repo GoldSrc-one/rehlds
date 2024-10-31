@@ -253,6 +253,8 @@ enum GameType_e {
 	GT_HL1,
 	GT_CStrike
 };
+struct delta_s;
+struct delta_info_s;
 #endif
 
 class IRehldsServerStatic {
@@ -334,4 +336,6 @@ public:
 	virtual sizebuf_t *GetSpectatorBuf() = 0;
 	virtual sizebuf_t *GetSignonBuf() = 0;
 	virtual void SetGameType(GameType_e gameType) = 0;
+	virtual struct delta_s** GetDeltaPtr(const char* deltaName) = 0;
+	virtual struct delta_info_s* GetDeltaInfoChain() = 0;
 };
