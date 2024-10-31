@@ -865,6 +865,10 @@ sizebuf_t *EXT_FUNC CRehldsServerData::GetSignonBuf()
 	return &g_psv.signon;
 }
 
+void EXT_FUNC CRehldsServerData::SetGameType(GameType_e gameType) {
+	g_eGameType = gameType;
+}
+
 void Rehlds_Interfaces_FreeClients()
 {
 	if (g_GameClients == NULL)
