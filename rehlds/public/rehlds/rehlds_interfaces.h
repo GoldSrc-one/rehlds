@@ -244,6 +244,15 @@ public:
 
 #ifndef REHLDS_SELF
 struct client_t;
+enum GameType_e {
+	GT_Unitialized,
+	GT_CZero,
+	GT_CZeroRitual,
+	GT_TerrorStrike,
+	GT_TFC,
+	GT_HL1,
+	GT_CStrike
+};
 #endif
 
 class IRehldsServerStatic {
@@ -324,4 +333,5 @@ public:
 	virtual sizebuf_t *GetMulticastBuf() = 0;
 	virtual sizebuf_t *GetSpectatorBuf() = 0;
 	virtual sizebuf_t *GetSignonBuf() = 0;
+	virtual void SetGameType(GameType_e gameType) = 0;
 };
