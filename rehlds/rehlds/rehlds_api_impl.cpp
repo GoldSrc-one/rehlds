@@ -909,6 +909,18 @@ IRehldsHookRegistry_SV_SendResources* CRehldsHookchains::SV_SendResources() {
 	return &m_SV_SendResources;
 }
 
+IRehldsHookRegistry_SV_SendUserReg* CRehldsHookchains::SV_SendUserReg() {
+	return &m_SV_SendUserReg;
+}
+
+IRehldsHookRegistry_SV_WriteBaselineMessage* CRehldsHookchains::SV_WriteBaselineMessage() {
+	return &m_SV_WriteBaselineMessage;
+}
+
+IRehldsHookRegistry_SV_SendClientDatagram* CRehldsHookchains::SV_SendClientDatagram() {
+	return &m_SV_SendClientDatagram;
+}
+
 int EXT_FUNC CRehldsApi::GetMajorVersion()
 {
 	return REHLDS_API_VERSION_MAJOR;

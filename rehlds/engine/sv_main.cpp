@@ -1486,7 +1486,11 @@ void SV_WriteSpawn(sizebuf_t *msg)
 	NotifyDedicatedServerUI("UpdatePlayers");
 }
 
-void EXT_FUNC SV_SendUserReg(sizebuf_t *msg)
+void SV_SendUserReg(sizebuf_t *msg) {
+	g_RehldsHookchains.m_SV_SendUserReg.callChain(SV_SendUserReg_internal, msg);
+}
+
+void EXT_FUNC SV_SendUserReg_internal(sizebuf_t *msg)
 {
 	for (UserMsg *pMsg = sv_gpNewUserMsgs; pMsg; pMsg = pMsg->next)
 	{
@@ -4993,7 +4997,15 @@ void SV_CleanupEnts(void)
 	}
 }
 
-qboolean SV_SendClientDatagram(client_t *client)
+qboolean EXT_FUNC SV_SendClientDatagram_hook(IGameClient* cl) {
+	return SV_SendClientDatagram_internal(cl->GetClient());
+}
+
+qboolean SV_SendClientDatagram(client_t* client) {
+	return g_RehldsHookchains.m_SV_SendClientDatagram.callChain(SV_SendClientDatagram_hook, GetRehldsApiClient(client));
+}
+
+qboolean SV_SendClientDatagram_internal(client_t *client)
 {
 	unsigned char buf[MAX_DATAGRAM];
 	sizebuf_t msg;
@@ -5820,12 +5832,8 @@ void SV_CreateBaseline(void)
 	edict_t *svent;
 	int entnum;
 	qboolean player;
-	qboolean custom;
-	entity_state_t nullstate;
-	delta_t *pDelta;
 
 	g_psv.instance_baselines = &g_sv_instance_baselines;
-	Q_memset(&nullstate, 0, sizeof(entity_state_t));
 	SV_FindModelNumbers();
 
 	for (entnum = 0; entnum < g_psv.num_edicts; entnum++)
@@ -5880,33 +5888,46 @@ void SV_CreateBaseline(void)
 		}
 	}
 	gEntityInterface.pfnCreateInstancedBaselines();
+	SV_WriteBaselineMessage();
+}
+
+void SV_WriteBaselineMessage() {
+	g_RehldsHookchains.m_SV_WriteBaselineMessage.callChain(SV_WriteBaselineMessage_internal);
+}
+
+void SV_WriteBaselineMessage_internal() {
+	edict_t* svent;
+	int entnum;
+	qboolean custom;
+	entity_state_t nullstate;
+	delta_t* pDelta;
+
+	Q_memset(&nullstate, 0, sizeof(entity_state_t));
+
 	MSG_WriteByte(&g_psv.signon, svc_spawnbaseline);
 	MSG_StartBitWriting(&g_psv.signon);
-	for (entnum = 0; entnum < g_psv.num_edicts; entnum++)
-	{
+	for(entnum = 0; entnum < g_psv.num_edicts; entnum++) {
 		svent = &g_psv.edicts[entnum];
-		if (!svent->free && (g_psvs.maxclients >= entnum || svent->v.modelindex))
-		{
+		if(!svent->free && (g_psvs.maxclients >= entnum || svent->v.modelindex)) {
 			MSG_WriteBits(entnum, 11);
 			MSG_WriteBits(g_psv.baselines[entnum].entityType, 2);
 			custom = ~g_psv.baselines[entnum].entityType & ENTITY_NORMAL;
-			if (custom)
+			if(custom)
 				pDelta = g_pcustomentitydelta;
-			else
-			{
+			else {
 				pDelta = g_pplayerdelta;
-				if (!SV_IsPlayerIndex(entnum))
+				if(!SV_IsPlayerIndex(entnum))
 					pDelta = g_pentitydelta;
 			}
 
-			DELTA_WriteDelta((byte *)&nullstate, (byte *)&(g_psv.baselines[entnum]), TRUE, pDelta, NULL);
+			DELTA_WriteDelta((byte*)&nullstate, (byte*)&(g_psv.baselines[entnum]), TRUE, pDelta, NULL);
 		}
 	}
 
 	MSG_WriteBits(0xFFFF, 16);
 	MSG_WriteBits(g_psv.instance_baselines->number, 6);
-	for (entnum = 0; entnum < g_psv.instance_baselines->number; entnum++)
-		DELTA_WriteDelta((byte *)&nullstate, (byte *)&(g_psv.instance_baselines->baseline[entnum]), TRUE, g_pentitydelta, NULL);
+	for(entnum = 0; entnum < g_psv.instance_baselines->number; entnum++)
+		DELTA_WriteDelta((byte*)&nullstate, (byte*)&(g_psv.instance_baselines->baseline[entnum]), TRUE, g_pentitydelta, NULL);
 
 	MSG_EndBitWriting(&g_psv.signon);
 }

@@ -264,6 +264,18 @@ typedef IHookChainRegistry<bool, edict_t*, edict_t*> IRehldsHookRegistry_SV_Allo
 typedef IVoidHookChain<sizebuf_t *> IRehldsHook_SV_SendResources;
 typedef IVoidHookChainRegistry<sizebuf_t *> IRehldsHookRegistry_SV_SendResources;
 
+//SV_SendUserReg hook
+typedef IVoidHookChain<sizebuf_t*> IRehldsHook_SV_SendUserReg;
+typedef IVoidHookChainRegistry<sizebuf_t*> IRehldsHookRegistry_SV_SendUserReg;
+
+//SV_WriteBaselineMessage hook
+typedef IVoidHookChain<> IRehldsHook_SV_WriteBaselineMessage;
+typedef IVoidHookChainRegistry<> IRehldsHookRegistry_SV_WriteBaselineMessage;
+
+//SV_SendClientDatagram hook
+typedef IHookChain<qboolean, IGameClient*> IRehldsHook_SV_SendClientDatagram;
+typedef IHookChainRegistry<qboolean, IGameClient*> IRehldsHookRegistry_SV_SendClientDatagram;
+
 class IRehldsHookchains {
 public:
 	virtual ~IRehldsHookchains() { }
@@ -324,6 +336,9 @@ public:
 	virtual IRehldsHookRegistry_SV_ClientPrintf* SV_ClientPrintf() = 0;
 	virtual IRehldsHookRegistry_SV_AllowPhysent* SV_AllowPhysent() = 0;
 	virtual IRehldsHookRegistry_SV_SendResources* SV_SendResources() = 0;
+	virtual IRehldsHookRegistry_SV_SendUserReg* SV_SendUserReg() = 0;
+	virtual IRehldsHookRegistry_SV_WriteBaselineMessage* SV_WriteBaselineMessage() = 0;
+	virtual IRehldsHookRegistry_SV_SendClientDatagram* SV_SendClientDatagram() = 0;
 };
 
 struct RehldsFuncs_t {
