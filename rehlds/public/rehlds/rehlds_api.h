@@ -434,6 +434,9 @@ struct RehldsFuncs_t {
 	void(*MSG_BeginReading)();
 	double(*GetHostFrameTime)();
 	struct cmd_function_s *(*GetFirstCmdFunctionHandle)();
+
+	// Delta functions
+	qboolean(*DELTA_Load)(char* name, struct delta_s** ppdesc, char* pszFile);
 };
 
 class IRehldsApi {
