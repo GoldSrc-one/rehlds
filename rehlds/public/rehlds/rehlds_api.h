@@ -383,6 +383,7 @@ struct RehldsFuncs_t {
 	void(*RemoveCvarListener)(const char *var_name, cvar_callback_t func);
 	void*(*GetExtDll)(int iExtDll);
 	ENTITYINIT(*GetEntityInit)(char *pszClassName);
+	void(*SV_StudioSetupBones)(struct model_s* pModel, float frame, int sequence, const vec_t* angles, const vec_t* origin, const unsigned char* pcontroller, const unsigned char* pblending, int iBone, const edict_t* edict);
 
 	// Read functions
 	int(*MSG_ReadChar)();
