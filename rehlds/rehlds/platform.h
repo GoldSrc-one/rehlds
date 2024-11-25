@@ -49,7 +49,12 @@ public:
 	virtual void SteamAPI_UnregisterCallResult(class CCallbackBase *pCallback, SteamAPICall_t hAPICall) = 0;
 	virtual ISteamApps* SteamApps() = 0;
 	virtual bool SteamGameServer_Init(uint32 unIP, uint16 usSteamPort, uint16 usGamePort, uint16 usQueryPort, EServerMode eServerMode, const char *pchVersionString) = 0;
+	virtual bool SteamGameServer_InitExtra(uint32 unIP, uint16 usSteamPort, uint16 usGamePort, uint16 usQueryPort, EServerMode eServerMode, const char* pchVersionString, int iExtraGame) = 0;
 	virtual ISteamGameServer* SteamGameServer() = 0;
+	inline ISteamGameServer* SteamGameServerExtra(netsrc_t clientSock) {
+		return clientSock < NS_EXTRA ? SteamGameServer() : SteamGameServerExtra(clientSock - NS_EXTRA);
+	}
+	virtual ISteamGameServer* SteamGameServerExtra(int iExtraGame) = 0;
 	virtual void SteamGameServer_RunCallbacks() = 0;
 	virtual void SteamAPI_RunCallbacks() = 0;
 	virtual void SteamGameServer_Shutdown() = 0;
@@ -106,7 +111,9 @@ public:
 	virtual void SteamAPI_UnregisterCallResult(class CCallbackBase *pCallback, SteamAPICall_t hAPICall);
 	virtual ISteamApps* SteamApps();
 	virtual bool SteamGameServer_Init(uint32 unIP, uint16 usSteamPort, uint16 usGamePort, uint16 usQueryPort, EServerMode eServerMode, const char *pchVersionString);
+	virtual bool SteamGameServer_InitExtra(uint32 unIP, uint16 usSteamPort, uint16 usGamePort, uint16 usQueryPort, EServerMode eServerMode, const char* pchVersionString, int iExtraGame);
 	virtual ISteamGameServer* SteamGameServer();
+	virtual ISteamGameServer* SteamGameServerExtra(int iExtraGame);
 	virtual void SteamGameServer_RunCallbacks();
 	virtual void SteamAPI_RunCallbacks();
 	virtual void SteamGameServer_Shutdown();

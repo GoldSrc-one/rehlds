@@ -192,7 +192,9 @@ public:
 	virtual void SteamAPI_UnregisterCallResult(class CCallbackBase *pCallback, SteamAPICall_t hAPICall);
 	virtual ISteamApps* SteamApps();
 	virtual bool SteamGameServer_Init(uint32 unIP, uint16 usSteamPort, uint16 usGamePort, uint16 usQueryPort, EServerMode eServerMode, const char *pchVersionString);
+	virtual bool SteamGameServer_InitExtra(uint32 unIP, uint16 usSteamPort, uint16 usGamePort, uint16 usQueryPort, EServerMode eServerMode, const char* pchVersionString, int iExtraGame) { return FALSE; }
 	virtual ISteamGameServer* SteamGameServer();
+	virtual ISteamGameServer* SteamGameServerExtra(int iExtraGame) { return nullptr; }
 	virtual void SteamGameServer_RunCallbacks();
 	virtual void SteamAPI_RunCallbacks();
 	virtual void SteamGameServer_Shutdown();

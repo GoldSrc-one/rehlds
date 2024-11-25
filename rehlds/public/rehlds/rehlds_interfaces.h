@@ -224,6 +224,8 @@ public:
 	virtual bool IsSentNewResponse() = 0;
 	virtual void SetSentNewResponse(bool state) = 0;
 
+	virtual const char* GetGame() = 0;
+
 	// this must be the last virtual function in class
 #ifdef REHLDS_SELF
 	virtual client_t* GetClient() = 0;
