@@ -511,7 +511,7 @@ void EXT_FUNC CGameClient::SetSentNewResponse(bool state)
 }
 
 const char* EXT_FUNC CGameClient::GetGame() {
-	return m_pClient->m_sock > NS_EXTRA ? extra_games[m_pClient->m_sock - NS_EXTRA] : com_gamedir;
+	return m_pClient->m_sock < NS_EXTRA ? com_gamedir : extra_games[m_pClient->m_sock - NS_EXTRA];
 }
 
 CNetChan::CNetChan(netchan_t* chan)
