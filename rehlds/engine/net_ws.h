@@ -120,13 +120,17 @@ extern cvar_t ip_clientport;
 extern cvar_t clientport;
 extern int net_sleepforever;
 extern loopback_t loopbacks[2];
-extern packetlag_t g_pLagData[3];
+extern packetlag_t g_pLagData[NS_MAX];
 extern float gFakeLag;
 extern int net_configured;
 #ifdef _WIN32
 extern netadr_t net_local_ipx_adr;
 #endif // _WIN32
 extern netadr_t net_local_adr;
+extern netadr_t net_local_adr_extra[MAX_EXTRA_GAMES];
+extern int num_extra_games;
+extern char* extra_games[MAX_EXTRA_GAMES];
+extern netsrc_t net_sock;
 extern netadr_t net_from;
 extern qboolean noip;
 #ifdef _WIN32
@@ -152,12 +156,12 @@ extern unsigned char net_message_buffer[NET_MAX_PAYLOAD];
 extern unsigned char in_message_buf[NET_MAX_PAYLOAD];
 extern sizebuf_t in_message;
 extern netadr_t in_from;
-extern SOCKET ip_sockets[3];
+extern SOCKET ip_sockets[NS_MAX];
 #ifdef _WIN32
-extern SOCKET ipx_sockets[3];
+extern SOCKET ipx_sockets[NS_MAX];
 #endif // _WIN32
 extern LONGPACKET gNetSplit;
-extern net_messages_t *messages[3];
+extern net_messages_t *messages[NS_MAX];
 extern net_messages_t *normalqueue;
 
 
@@ -196,6 +200,7 @@ void *net_malloc(size_t size);
 net_messages_t *NET_AllocMsg(int size);
 void NET_FreeMsg(net_messages_t *pmsg);
 qboolean NET_GetPacket(netsrc_t sock);
+qboolean NET_GetExtraPacket();
 void NET_AllocateQueues();
 void NET_FlushQueues();
 int NET_SendLong(netsrc_t sock, SOCKET s, const char *buf, int len, int flags, const struct sockaddr *to, int tolen);

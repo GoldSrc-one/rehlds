@@ -1128,11 +1128,17 @@ void SV_SendServerinfo_internal(sizebuf_t *msg, client_t *client)
 #ifdef REHLDS_FIXES
 	// Give the client a chance to connect in to the server with different game
 	const char *gd = Info_ValueForKey(client->userinfo, "_gd");
-	if (gd[0])
+	if(gd[0]) {
 		pszGameDir = gd;
-	else
-#endif
+	}
+	else if(client->m_sock >= NS_EXTRA) {
+		pszGameDir = extra_games[client->m_sock - NS_EXTRA];
+	} else {
 		COM_FileBase(com_gamedir, message);
+	}
+#else
+	COM_FileBase(com_gamedir, message);
+#endif		
 
 	MSG_WriteString(msg, pszGameDir);
 	MSG_WriteString(msg, Cvar_VariableString("hostname"));
@@ -1730,7 +1736,7 @@ void EXT_FUNC SV_RejectConnection(netadr_t *adr, char *fmt, ...)
 	MSG_WriteLong(&net_message, -1);
 	MSG_WriteByte(&net_message, '9');
 	MSG_WriteString(&net_message, text);
-	NET_SendPacket(NS_SERVER, net_message.cursize, net_message.data, *adr);
+	NET_SendPacket(net_sock, net_message.cursize, net_message.data, *adr);
 	SZ_Clear(&net_message);
 }
 
@@ -1740,7 +1746,7 @@ void SV_RejectConnectionForPassword(netadr_t *adr)
 	MSG_WriteLong(&net_message, -1);
 	MSG_WriteByte(&net_message, '8');
 	MSG_WriteString(&net_message, "BADPASSWORD");
-	NET_SendPacket(NS_SERVER, net_message.cursize, net_message.data, *adr);
+	NET_SendPacket(net_sock, net_message.cursize, net_message.data, *adr);
 	SZ_Clear(&net_message);
 }
 
@@ -2424,6 +2430,7 @@ void EXT_FUNC SV_ConnectClient_internal(void)
 		return;
 
 	host_client = client;
+	host_client->m_sock = net_sock;
 	client->userid = g_userid++;
 	if (nAuthProtocol == 3)
 	{
@@ -2494,7 +2501,7 @@ void EXT_FUNC SV_ConnectClient_internal(void)
 	if (g_modfuncs.m_pfnConnectClient)
 		g_modfuncs.m_pfnConnectClient(nClientSlot);
 
-	Netchan_Setup(NS_SERVER, &host_client->netchan, adr, client - g_psvs.clients, client, SV_GetFragmentSize);
+	Netchan_Setup(net_sock, &host_client->netchan, adr, client - g_psvs.clients, client, SV_GetFragmentSize);
 	host_client->next_messageinterval = 5.0;
 	host_client->next_messagetime = realtime + 0.05;
 	host_client->delta_sequence = -1;
@@ -2530,7 +2537,7 @@ void EXT_FUNC SV_ConnectClient_internal(void)
 #endif // REHLDS_FIXES
 
 	bIsSecure = Steam_GSBSecure();
-	Netchan_OutOfBandPrint(NS_SERVER, adr, "%c %i \"%s\" %i %i", S2C_CONNECTION, host_client->userid, NET_AdrToString(host_client->netchan.remote_address), bIsSecure, build_number()
+	Netchan_OutOfBandPrint(net_sock, adr, "%c %i \"%s\" %i %i", S2C_CONNECTION, host_client->userid, NET_AdrToString(host_client->netchan.remote_address), bIsSecure, build_number()
 #ifdef REHLDS_FIXES
 		+ 5970 // Send a fake build number greater than 5970 because the client checks for an older server build into CL_Move
 #endif
@@ -2641,7 +2648,7 @@ void SVC_GetChallenge(void)
 
 	// Give 3-rd party plugins a chance to modify challenge response
 	g_RehldsHookchains.m_SVC_GetChallenge_mod.callChain(NULL, data, challenge);
-	NET_SendPacket(NS_SERVER, Q_strlen(data) + 1, data, net_from);
+	NET_SendPacket(net_sock, Q_strlen(data) + 1, data, net_from);
 }
 
 void SVC_ServiceChallenge(void)
@@ -3902,7 +3909,7 @@ bool EXT_FUNC NET_GetPacketPreprocessor(uint8* data, unsigned int len, const net
 
 void SV_ReadPackets(void)
 {
-	while (NET_GetPacket(NS_SERVER))
+	while (NET_GetExtraPacket() || NET_GetPacket(NS_SERVER))
 	{
 #ifndef REHLDS_FIXES
 		if (SV_FilterPacket())
@@ -3929,7 +3936,7 @@ void SV_ReadPackets(void)
 				}
 #endif
 
-				Steam_HandleIncomingPacket(net_message.data, net_message.cursize, ntohl(*(u_long *)&net_from.ip[0]), htons(net_from.port));
+				CRehldsPlatformHolder::get()->SteamGameServerExtra(net_sock)->HandleIncomingPacket(net_message.data, net_message.cursize, ntohl(*(u_long*)&net_from.ip[0]), htons(net_from.port));
 				SV_ConnectionlessPacket();
 			}
 
@@ -8602,6 +8609,15 @@ int GetGameAppID(void)
 	for (int i = 0; i < ARRAYSIZE(g_GameToAppIDMap); i++)
 	{
 		if (!Q_stricmp(g_GameToAppIDMap[i].pGameDir, arg))
+			return g_GameToAppIDMap[i].iAppID;
+	}
+
+	return 70;
+}
+
+int GetGameAppIDByName(const char * gameName) {
+	for(int i = 0; i < ARRAYSIZE(g_GameToAppIDMap); i++) {
+		if(!Q_stricmp(g_GameToAppIDMap[i].pGameDir, gameName))
 			return g_GameToAppIDMap[i].iAppID;
 	}
 
