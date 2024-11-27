@@ -223,25 +223,31 @@ ISteamGameServer* CSimplePlatform::SteamGameServer() {
 }
 
 ISteamGameServer* CSimplePlatform::SteamGameServerExtra(int iGame) {
-	auto pfnSteamGameServer = (ISteamGameServer*(*)())GetProcAddress(getSteamApiExtra(iGame), "SteamGameServer");
-	return pfnSteamGameServer();
+	static ISteamGameServer* (*pfnSteamGameServer[MAX_EXTRA_GAMES])() = {};
+	if(!pfnSteamGameServer[iGame])
+		pfnSteamGameServer[iGame] = (ISteamGameServer*(*)())GetProcAddress(getSteamApiExtra(iGame), "SteamGameServer");
+	return pfnSteamGameServer[iGame]();
 }
 
 void CSimplePlatform::SteamGameServer_RunCallbacks() {
 	::SteamGameServer_RunCallbacks();
 
+	static void (*pfnSteamGameServer_RunCallbacks[MAX_EXTRA_GAMES])() = {};
 	for(int iGame = 0; iGame < num_extra_games; iGame++) {
-		auto pfnSteamGameServer_RunCallbacks = (void (*)())GetProcAddress(getSteamApiExtra(iGame), "SteamGameServer_RunCallbacks");
-		pfnSteamGameServer_RunCallbacks();
+		if(!pfnSteamGameServer_RunCallbacks[iGame])
+			pfnSteamGameServer_RunCallbacks[iGame] = (void (*)())GetProcAddress(getSteamApiExtra(iGame), "SteamGameServer_RunCallbacks");
+		pfnSteamGameServer_RunCallbacks[iGame]();
 	}
 }
 
 void CSimplePlatform::SteamAPI_RunCallbacks() {
 	::SteamAPI_RunCallbacks();
 
+	static void (*pfnSteamAPI_RunCallbacks[MAX_EXTRA_GAMES])() = {};
 	for(int iGame = 0; iGame < num_extra_games; iGame++) {
-		auto pfnSteamAPI_RunCallbacks = (void (*)())GetProcAddress(getSteamApiExtra(iGame), "SteamAPI_RunCallbacks");
-		pfnSteamAPI_RunCallbacks();
+		if(!pfnSteamAPI_RunCallbacks[iGame])
+			pfnSteamAPI_RunCallbacks[iGame] = (void (*)())GetProcAddress(getSteamApiExtra(iGame), "SteamAPI_RunCallbacks");
+		pfnSteamAPI_RunCallbacks[iGame]();
 	}
 }
 

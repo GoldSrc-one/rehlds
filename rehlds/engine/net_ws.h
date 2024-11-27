@@ -119,7 +119,7 @@ extern cvar_t defport;
 extern cvar_t ip_clientport;
 extern cvar_t clientport;
 extern int net_sleepforever;
-extern loopback_t loopbacks[2];
+extern loopback_t loopbacks[NS_MAX];
 extern packetlag_t g_pLagData[NS_MAX];
 extern float gFakeLag;
 extern int net_configured;
