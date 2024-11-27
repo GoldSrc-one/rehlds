@@ -30,7 +30,7 @@
 
 qboolean net_thread_initialized;
 
-loopback_t loopbacks[2];
+loopback_t loopbacks[NS_MAX];
 packetlag_t g_pLagData[NS_MAX];	// List of lag structures, if fakelag is set.
 float gFakeLag;
 int net_configured;
@@ -555,7 +555,7 @@ void NET_SendLoopPacket(netsrc_t sock, int length, void *data, const netadr_t& t
 {
 	NET_ThreadLock();
 
-	loopback_t *loop = &loopbacks[sock ^ 1];
+	loopback_t *loop = &loopbacks[sock == NS_CLIENT ? NS_SERVER : NS_CLIENT];
 
 	int i = loop->send & (MAX_LOOPBACK - 1);
 	loop->send++;
@@ -960,7 +960,7 @@ qboolean NET_QueuePacket(netsrc_t sock)
 
 #ifdef REHLDS_FIXES
 		// Only server can send split packets, there is no server<->server communication, so server can't receive split packets
-		if (sock == NS_SERVER)
+		if (sock == NS_SERVER || sock >= NS_EXTRA)
 		{
 			Con_NetPrintf("Someone tries to send split packet to the server\n");
 			continue;
@@ -1318,7 +1318,7 @@ int NET_SendLong(netsrc_t sock, SOCKET s, const char *buf, int len, int flags, c
 	static long gSequenceNumber = 1;
 
 	// Do we need to break this packet up?
-	if (sock == NS_SERVER && len > MAX_ROUTEABLE_PACKET)
+	if ((sock == NS_SERVER || sock >= NS_EXTRA) && len > MAX_ROUTEABLE_PACKET)
 	{
 		// yep
 		gSequenceNumber++;
