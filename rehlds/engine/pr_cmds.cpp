@@ -2025,7 +2025,7 @@ edict_t *EXT_FUNC CreateFakeClient_internal(const char *netname)
 	fakeclient->sendinfo = TRUE;
 	SV_ExtractFromUserinfo(fakeclient);
 
-	fakeclient->network_userid.m_SteamID = ISteamGameServer_CreateUnauthenticatedUserConnection();
+	fakeclient->network_userid.m_SteamID = ISteamGameServer_CreateUnauthenticatedUserConnection(fakeclient);
 	fakeclient->network_userid.idtype = AUTH_IDTYPE_STEAM;
 	ISteamGameServer_BUpdateUserData(fakeclient->network_userid.m_SteamID, netname, 0);
 
