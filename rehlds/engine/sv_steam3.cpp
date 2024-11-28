@@ -367,6 +367,9 @@ void CSteam3Server::Shutdown()
 	}
 }
 
+//this doesn't cover player connecting to the main server (for now at least)
+static uint64 gExtraSteamIDs[MAX_CLIENTS][MAX_EXTRA_GAMES];
+
 bool CSteam3Server::NotifyClientConnect(client_t *client, const void *pvSteam2Key, uint32 ucbSteam2Key)
 {
 	class CSteamID steamIDClient;
@@ -376,9 +379,16 @@ bool CSteam3Server::NotifyClientConnect(client_t *client, const void *pvSteam2Ke
 		return false;
 
 	client->network_userid.idtype = AUTH_IDTYPE_STEAM;
-
 	bRet = CRehldsPlatformHolder::get()->SteamGameServerExtra(client->m_sock)->SendUserConnectAndAuthenticate(htonl(client->network_userid.clientip), pvSteam2Key, ucbSteam2Key, &steamIDClient);
 	client->network_userid.m_SteamID = steamIDClient.ConvertToUint64();
+
+	int clientIndex = client - g_psvs.clients;
+	for(int iGame = 0; iGame < num_extra_games; iGame++) {
+		if(iGame == client->m_sock - NS_EXTRA)
+			gExtraSteamIDs[clientIndex][iGame] = client->network_userid.m_SteamID;
+		else
+			gExtraSteamIDs[clientIndex][iGame] = CRehldsPlatformHolder::get()->SteamGameServerExtra(iGame)->CreateUnauthenticatedUserConnection().ConvertToUint64();
+	}
 
 	return bRet;
 }
@@ -389,8 +399,17 @@ bool CSteam3Server::NotifyBotConnect(client_t *client)
 		return false;
 
 	client->network_userid.idtype = AUTH_IDTYPE_LOCAL;
-	CSteamID steamId = CRehldsPlatformHolder::get()->SteamGameServer()->CreateUnauthenticatedUserConnection();
+	CSteamID steamId = CRehldsPlatformHolder::get()->SteamGameServerExtra(client->m_sock)->CreateUnauthenticatedUserConnection();
 	client->network_userid.m_SteamID = steamId.ConvertToUint64();
+
+	int clientIndex = client - g_psvs.clients;
+	for(int iGame = 0; iGame < num_extra_games; iGame++) {
+		if(iGame == client->m_sock - NS_EXTRA)
+			gExtraSteamIDs[clientIndex][iGame] = client->network_userid.m_SteamID;
+		else
+			gExtraSteamIDs[clientIndex][iGame] = CRehldsPlatformHolder::get()->SteamGameServerExtra(iGame)->CreateUnauthenticatedUserConnection().ConvertToUint64();
+	}
+
 	return true;
 }
 
@@ -399,10 +418,22 @@ void CSteam3Server::NotifyClientDisconnect(client_t *cl)
 	if (!cl || !m_bLoggedOn)
 		return;
 
+	int clientIndex = cl - g_psvs.clients;
+
 	if (cl->network_userid.idtype == AUTH_IDTYPE_STEAM || cl->network_userid.idtype == AUTH_IDTYPE_LOCAL)
 	{
 		CRehldsPlatformHolder::get()->SteamGameServerExtra(cl->m_sock)->SendUserDisconnect(cl->network_userid.m_SteamID);
+
+		for(int iGame = 0; iGame < num_extra_games; iGame++) {
+			if(iGame == cl->m_sock - NS_EXTRA)
+				continue;
+
+			CRehldsPlatformHolder::get()->SteamGameServerExtra(iGame)->SendUserDisconnect(gExtraSteamIDs[clientIndex][iGame]);
+		}
 	}
+
+	for(int iGame = 0; iGame < num_extra_games; iGame++)
+		gExtraSteamIDs[clientIndex][iGame] = 0;
 }
 
 void CSteam3Server::NotifyOfLevelChange(bool bForce)
@@ -694,11 +725,16 @@ void CSteam3Client::RunFrame()
 	CRehldsPlatformHolder::get()->SteamAPI_RunCallbacks();
 }
 
-uint64 ISteamGameServer_CreateUnauthenticatedUserConnection()
+uint64 ISteamGameServer_CreateUnauthenticatedUserConnection(client_t* fakeclient)
 {
 	if (!CRehldsPlatformHolder::get()->SteamGameServer())
 	{
 		return 0L;
+	}
+
+	int clientIndex = fakeclient - g_psvs.clients;
+	for(int iGame = 0; iGame < num_extra_games; iGame++) {
+		gExtraSteamIDs[clientIndex][iGame] = CRehldsPlatformHolder::get()->SteamGameServerExtra(iGame)->CreateUnauthenticatedUserConnection().ConvertToUint64();
 	}
 
 	return CRehldsPlatformHolder::get()->SteamGameServer()->CreateUnauthenticatedUserConnection().ConvertToUint64();
@@ -706,6 +742,20 @@ uint64 ISteamGameServer_CreateUnauthenticatedUserConnection()
 
 bool Steam_GSBUpdateUserData(uint64 steamIDUser, const char *pchPlayerName, uint32 uScore)
 {
+	for(int iClient = 0; iClient < g_psvs.maxclients; iClient++) {
+		auto client = &g_psvs.clients[iClient];
+		if(!client->active || client->network_userid.m_SteamID != steamIDUser)
+			continue;
+
+		for(int iGame = 0; iGame < num_extra_games; iGame++) {
+			if(!gExtraSteamIDs[iClient][iGame])
+				continue;
+
+			if(!CRehldsPlatformHolder::get()->SteamGameServerExtra(iGame)->BUpdateUserData(gExtraSteamIDs[iClient][iGame], pchPlayerName, uScore))
+				gExtraSteamIDs[iClient][iGame] = 0;
+		}
+	}
+
 	return CRehldsPlatformHolder::get()->SteamGameServer()->BUpdateUserData(steamIDUser, pchPlayerName, uScore);
 }
 

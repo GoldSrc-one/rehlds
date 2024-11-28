@@ -129,7 +129,7 @@ public:
 extern CSteam3Server *s_Steam3Server;
 extern CSteam3Client s_Steam3Client;
 
-uint64 ISteamGameServer_CreateUnauthenticatedUserConnection();
+uint64 ISteamGameServer_CreateUnauthenticatedUserConnection(client_t *fakeclient);
 bool ISteamGameServer_BUpdateUserData(uint64 steamid, const char *netname, uint32 score);
 bool ISteamApps_BIsSubscribedApp(uint32 appid);
 const char *Steam_GetCommunityName();
