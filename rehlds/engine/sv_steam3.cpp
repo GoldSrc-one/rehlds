@@ -384,6 +384,10 @@ bool CSteam3Server::NotifyClientConnect(client_t *client, const void *pvSteam2Ke
 
 	int clientIndex = client - g_psvs.clients;
 	for(int iGame = 0; iGame < num_extra_games; iGame++) {
+		gExtraSteamIDs[clientIndex][iGame] = 0;
+		if(!bRet)
+			continue;
+
 		if(iGame == client->m_sock - NS_EXTRA)
 			gExtraSteamIDs[clientIndex][iGame] = client->network_userid.m_SteamID;
 		else
