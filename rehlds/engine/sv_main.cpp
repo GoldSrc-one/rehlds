@@ -2463,6 +2463,7 @@ void EXT_FUNC SV_ConnectClient_internal(void)
 			host_client->network_userid.idtype = AUTH_IDTYPE_STEAM;
 			host_client->network_userid.m_SteamID = 0;
 		}
+		Steam3Server()->NotifyClientConnectExtra(client);
 	}
 	else
 	{
