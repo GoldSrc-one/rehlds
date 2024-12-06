@@ -382,19 +382,22 @@ bool CSteam3Server::NotifyClientConnect(client_t *client, const void *pvSteam2Ke
 	bRet = CRehldsPlatformHolder::get()->SteamGameServerExtra(client->m_sock)->SendUserConnectAndAuthenticate(htonl(client->network_userid.clientip), pvSteam2Key, ucbSteam2Key, &steamIDClient);
 	client->network_userid.m_SteamID = steamIDClient.ConvertToUint64();
 
+	return bRet;
+}
+
+bool CSteam3Server::NotifyClientConnectExtra(client_t* client) {
+	if(client == NULL || !m_bLoggedOn)
+		return false;
+
 	int clientIndex = client - g_psvs.clients;
 	for(int iGame = 0; iGame < num_extra_games; iGame++) {
-		gExtraSteamIDs[clientIndex][iGame] = 0;
-		if(!bRet)
-			continue;
-
 		if(iGame == client->m_sock - NS_EXTRA)
 			gExtraSteamIDs[clientIndex][iGame] = client->network_userid.m_SteamID;
 		else
 			gExtraSteamIDs[clientIndex][iGame] = CRehldsPlatformHolder::get()->SteamGameServerExtra(iGame)->CreateUnauthenticatedUserConnection().ConvertToUint64();
 	}
 
-	return bRet;
+	return true;
 }
 
 bool CSteam3Server::NotifyBotConnect(client_t *client)
@@ -406,13 +409,7 @@ bool CSteam3Server::NotifyBotConnect(client_t *client)
 	CSteamID steamId = CRehldsPlatformHolder::get()->SteamGameServerExtra(client->m_sock)->CreateUnauthenticatedUserConnection();
 	client->network_userid.m_SteamID = steamId.ConvertToUint64();
 
-	int clientIndex = client - g_psvs.clients;
-	for(int iGame = 0; iGame < num_extra_games; iGame++) {
-		if(iGame == client->m_sock - NS_EXTRA)
-			gExtraSteamIDs[clientIndex][iGame] = client->network_userid.m_SteamID;
-		else
-			gExtraSteamIDs[clientIndex][iGame] = CRehldsPlatformHolder::get()->SteamGameServerExtra(iGame)->CreateUnauthenticatedUserConnection().ConvertToUint64();
-	}
+	NotifyClientConnectExtra(client);
 
 	return true;
 }

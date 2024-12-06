@@ -97,6 +97,7 @@ public:
 	void Activate();
 	virtual void Shutdown();
 	bool NotifyClientConnect(client_t *client, const void *pvSteam2Key, uint32 ucbSteam2Key);
+	bool NotifyClientConnectExtra(client_t* client);
 	bool NotifyBotConnect(client_t *client);
 	void NotifyClientDisconnect(client_t *cl);
 	void NotifyOfLevelChange(bool bForce);
