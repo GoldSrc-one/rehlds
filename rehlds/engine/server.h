@@ -584,6 +584,7 @@ void SV_ActivateServer_internal(int runPhysics);
 void SV_ServerShutdown(void);
 int SV_SpawnServer(qboolean bIsDemo, char *server, char *startspot);
 void SV_LoadEntities(void);
+void SV_LoadEntities_internal(void);
 void SV_ClearEntities(void);
 int RegUserMsg(const char *pszName, int iSize);
 qboolean StringToFilter(const char *s, ipfilter_t *f);

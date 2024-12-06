@@ -152,6 +152,10 @@ typedef IHookChainRegistry<bool, IGameClient *, resource_t *, uint32> IRehldsHoo
 typedef IVoidHookChain<IGameClient*, bool, const char*> IRehldsHook_SV_DropClient;
 typedef IVoidHookChainRegistry<IGameClient*, bool, const char*> IRehldsHookRegistry_SV_DropClient;
 
+//SV_LoadEntities hook
+typedef IVoidHookChain<> IRehldsHook_SV_LoadEntities;
+typedef IVoidHookChainRegistry<> IRehldsHookRegistry_SV_LoadEntities;
+
 //SV_ActivateServer hook
 typedef IVoidHookChain<int> IRehldsHook_SV_ActivateServer;
 typedef IVoidHookChainRegistry<int> IRehldsHookRegistry_SV_ActivateServer;
@@ -308,6 +312,7 @@ public:
 	virtual IRehldsHookRegistry_SV_WriteFullClientUpdate* SV_WriteFullClientUpdate() = 0;
 	virtual IRehldsHookRegistry_SV_CheckConsistencyResponse* SV_CheckConsistencyResponse() = 0;
 	virtual IRehldsHookRegistry_SV_DropClient* SV_DropClient() = 0;
+	virtual IRehldsHookRegistry_SV_LoadEntities* SV_LoadEntities() = 0;
 	virtual IRehldsHookRegistry_SV_ActivateServer* SV_ActivateServer() = 0;
 	virtual IRehldsHookRegistry_SV_WriteVoiceCodec* SV_WriteVoiceCodec() = 0;
 	virtual IRehldsHookRegistry_Steam_GSGetSteamID* Steam_GSGetSteamID() = 0;

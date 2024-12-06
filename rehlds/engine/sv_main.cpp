@@ -6548,7 +6548,12 @@ int SV_SpawnServer(qboolean bIsDemo, char *server, char *startspot)
 	return 1;
 }
 
-void SV_LoadEntities(void)
+
+void SV_LoadEntities() {
+	g_RehldsHookchains.m_SV_LoadEntities.callChain(SV_LoadEntities_internal);
+}
+
+void SV_LoadEntities_internal(void)
 {
 #ifdef REHLDS_FIXES
 	if (sv_use_entity_file.value > 0.0f)

@@ -147,6 +147,10 @@ typedef IVoidHookChainImpl<IGameClient*, bool, const char*> CRehldsHook_SV_DropC
 typedef IVoidHookChainRegistryImpl<IGameClient*, bool, const char*> CRehldsHookRegistry_SV_DropClient;
 
 //SV_ActivateServer hook
+typedef IVoidHookChainImpl<> CRehldsHook_SV_LoadEntities;
+typedef IVoidHookChainRegistryImpl<> CRehldsHookRegistry_SV_LoadEntities;
+
+//SV_ActivateServer hook
 typedef IVoidHookChainImpl<int> CRehldsHook_SV_ActivateServer;
 typedef IVoidHookChainRegistryImpl<int> CRehldsHookRegistry_SV_ActivateServer;
 
@@ -300,6 +304,7 @@ public:
 	CRehldsHookRegistry_SV_WriteFullClientUpdate m_SV_WriteFullClientUpdate;
 	CRehldsHookRegistry_SV_CheckConsistencyResponse m_SV_CheckConsistencyResponse;
 	CRehldsHookRegistry_SV_DropClient m_SV_DropClient;
+	CRehldsHookRegistry_SV_LoadEntities m_SV_LoadEntities;
 	CRehldsHookRegistry_SV_ActivateServer m_SV_ActivateServer;
 	CRehldsHookRegistry_SV_WriteVoiceCodec m_SV_WriteVoiceCodec;
 	CRehldsHookRegistry_Steam_GSGetSteamID m_Steam_GSGetSteamID;
@@ -361,6 +366,7 @@ public:
 	EXT_FUNC virtual IRehldsHookRegistry_SV_WriteFullClientUpdate* SV_WriteFullClientUpdate();
 	EXT_FUNC virtual IRehldsHookRegistry_SV_CheckConsistencyResponse* SV_CheckConsistencyResponse();
 	EXT_FUNC virtual IRehldsHookRegistry_SV_DropClient* SV_DropClient();
+	EXT_FUNC virtual IRehldsHookRegistry_SV_LoadEntities* SV_LoadEntities();
 	EXT_FUNC virtual IRehldsHookRegistry_SV_ActivateServer* SV_ActivateServer();
 	EXT_FUNC virtual IRehldsHookRegistry_SV_WriteVoiceCodec* SV_WriteVoiceCodec();
 	EXT_FUNC virtual IRehldsHookRegistry_Steam_GSGetSteamID* Steam_GSGetSteamID();
