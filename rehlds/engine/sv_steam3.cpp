@@ -419,18 +419,15 @@ void CSteam3Server::NotifyClientDisconnect(client_t *cl)
 	if (!cl || !m_bLoggedOn)
 		return;
 
-	int clientIndex = cl - g_psvs.clients;
-
-	if (cl->network_userid.idtype == AUTH_IDTYPE_STEAM || cl->network_userid.idtype == AUTH_IDTYPE_LOCAL)
-	{
+	if(cl->network_userid.idtype == AUTH_IDTYPE_STEAM || cl->network_userid.idtype == AUTH_IDTYPE_LOCAL)
 		CRehldsPlatformHolder::get()->SteamGameServerExtra(cl->m_sock)->SendUserDisconnect(cl->network_userid.m_SteamID);
 
-		for(int iGame = 0; iGame < num_extra_games; iGame++) {
-			if(iGame == cl->m_sock - NS_EXTRA)
-				continue;
+	int clientIndex = cl - g_psvs.clients;
+	for(int iGame = 0; iGame < num_extra_games; iGame++) {
+		if(iGame == cl->m_sock - NS_EXTRA)
+			continue;
 
-			CRehldsPlatformHolder::get()->SteamGameServerExtra(iGame)->SendUserDisconnect(gExtraSteamIDs[clientIndex][iGame]);
-		}
+		CRehldsPlatformHolder::get()->SteamGameServerExtra(iGame)->SendUserDisconnect(gExtraSteamIDs[clientIndex][iGame]);
 	}
 
 	for(int iGame = 0; iGame < num_extra_games; iGame++)
