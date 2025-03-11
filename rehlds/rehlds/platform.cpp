@@ -162,8 +162,30 @@ static HMODULE getSteamApiExtra(int iExtraGame) {
 	libName[9] = '1' + iExtraGame;
 
 	auto lib = LoadLibraryA(libName);
+	if(lib)
+		return lib;
+
+	auto sf = fopen("steam_api.dll", "rb");
+	if(!sf)
+		Sys_Error("Couldn't open steam_api.dll for reading!");
+
+	auto tf = fopen(libName, "wb");
+	if(!tf)
+		Sys_Error("Couldn't open %s for writing!", libName);
+		
+	static char buffer[8192];
+	size_t read = 0;
+	do {
+		read = fread(buffer, 1, 8192, sf);
+		fwrite(buffer, 1, read, tf);
+	} while(read);
+
+	fclose(sf);
+	fclose(tf);
+
+	lib = LoadLibraryA(libName);
 	if(!lib)
-		Sys_Error("Please copy and paste steam_api.dll as %s", libName);
+		Sys_Error("Couldn't load %s!", libName);
 	
 	return lib;
 }
