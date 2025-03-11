@@ -1238,6 +1238,12 @@ void EXT_FUNC SV_SendResources_internal(sizebuf_t *msg)
 #endif
 	for (int i = 0; i < g_psv.num_resources; i++, r++)
 	{
+		//I've changed MAX_MODELS to 1024, so I better check that the clients will not know about that!
+		if(r->type == resourcetype_t::t_model && r->nIndex >= 512) {
+			Sys_Error("Sending a model with index >= 512!\n");
+			return;
+		}
+
 		MSG_WriteBits(r->type, 4);
 		MSG_WriteBitString(r->szFileName);
 		MSG_WriteBits(r->nIndex, RESOURCE_INDEX_BITS);
@@ -4963,6 +4969,7 @@ void SV_WriteEntitiesToClient(client_t *client, sizebuf_t *msg)
 			}
 
 			// Prevent spam "Non-sprite set to glow!" in console on client-side
+#ifdef FIX_NSSTG_SPAM
 			if (entityState.rendermode == kRenderGlow
 				&& (entityState.modelindex >= 0 && entityState.modelindex < MAX_MODELS)
 				&& g_psv.models[entityState.modelindex]
@@ -4970,6 +4977,7 @@ void SV_WriteEntitiesToClient(client_t *client, sizebuf_t *msg)
 			{
 				entityState.rendermode = kRenderNormal;
 			}
+#endif
 		}
 		else
 		{

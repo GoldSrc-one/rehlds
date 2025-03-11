@@ -27,7 +27,7 @@
 constexpr auto MAX_LIGHTSTYLE_SIZE = size_t{64};
 
 // Resource counts
-#define MAX_MODEL_INDEX_BITS		9	// sent as a short
+#define MAX_MODEL_INDEX_BITS		10	// sent as a short
 #define MAX_MODELS			(1<<MAX_MODEL_INDEX_BITS)
 #define MAX_SOUND_INDEX_BITS		9
 #define MAX_SOUNDS			(1<<MAX_SOUND_INDEX_BITS)
