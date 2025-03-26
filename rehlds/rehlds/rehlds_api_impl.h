@@ -134,6 +134,10 @@ typedef IVoidHookChainRegistryImpl<edict_t *> CRehldsHookRegistry_PF_Remove_I;
 typedef IVoidHookChainImpl<edict_t *, int, const char *, float, float, int, int, int, int, const float *, edict_t *> CRehldsHook_PF_BuildSoundMsg_I;
 typedef IVoidHookChainRegistryImpl<edict_t *, int, const char *, float, float, int, int, int, int, const float *, edict_t *> CRehldsHookRegistry_PF_BuildSoundMsg_I;
 
+//MapSoundIndex hook
+typedef IHookChainImpl<int, int> CRehldsHook_MapSoundIndex;
+typedef IHookChainRegistryImpl<int, int> CRehldsHookRegistry_MapSoundIndex;
+
 //SV_WriteFullClientUpdate hook
 typedef IVoidHookChainImpl<IGameClient *, char *, size_t, sizebuf_t *, IGameClient *> CRehldsHook_SV_WriteFullClientUpdate;
 typedef IVoidHookChainRegistryImpl<IGameClient *, char *, size_t, sizebuf_t *, IGameClient *> CRehldsHookRegistry_SV_WriteFullClientUpdate;
@@ -301,6 +305,7 @@ public:
 	CRehldsHookRegistry_SV_StartSound m_SV_StartSound;
 	CRehldsHookRegistry_PF_Remove_I m_PF_Remove_I;
 	CRehldsHookRegistry_PF_BuildSoundMsg_I m_PF_BuildSoundMsg_I;
+	CRehldsHookRegistry_MapSoundIndex m_MapSoundIndex;
 	CRehldsHookRegistry_SV_WriteFullClientUpdate m_SV_WriteFullClientUpdate;
 	CRehldsHookRegistry_SV_CheckConsistencyResponse m_SV_CheckConsistencyResponse;
 	CRehldsHookRegistry_SV_DropClient m_SV_DropClient;
@@ -363,6 +368,7 @@ public:
 	EXT_FUNC virtual IRehldsHookRegistry_SV_StartSound* SV_StartSound();
 	EXT_FUNC virtual IRehldsHookRegistry_PF_Remove_I* PF_Remove_I();
 	EXT_FUNC virtual IRehldsHookRegistry_PF_BuildSoundMsg_I* PF_BuildSoundMsg_I();
+	EXT_FUNC virtual IRehldsHookRegistry_MapSoundIndex* MapSoundIndex();
 	EXT_FUNC virtual IRehldsHookRegistry_SV_WriteFullClientUpdate* SV_WriteFullClientUpdate();
 	EXT_FUNC virtual IRehldsHookRegistry_SV_CheckConsistencyResponse* SV_CheckConsistencyResponse();
 	EXT_FUNC virtual IRehldsHookRegistry_SV_DropClient* SV_DropClient();

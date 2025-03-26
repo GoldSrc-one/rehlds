@@ -770,6 +770,11 @@ qboolean SV_BuildSoundMsg(edict_t *entity, int channel, const char *sample, int 
 			Con_Printf("%s: %s not precached (%d)\n", __func__, sample, sound_num);
 			return FALSE;
 		}
+		sound_num = MapSoundIndex(sound_num);
+		if(!sound_num) {
+			Con_Printf("%s: %s mapped to zero!\n", __func__, sample, sound_num);
+			return FALSE;
+		}
 	}
 
 	int ent = NUM_FOR_EDICT(entity);
@@ -799,6 +804,14 @@ qboolean SV_BuildSoundMsg(edict_t *entity, int channel, const char *sample, int 
 	MSG_EndBitWriting(buffer);
 
 	return TRUE;
+}
+
+int MapSoundIndex_internal(int sound_num) {
+	return sound_num;
+}
+
+int MapSoundIndex(int sound_num) {
+	return g_RehldsHookchains.m_MapSoundIndex.callChain(MapSoundIndex_internal, sound_num);
 }
 
 int SV_HashString(const char *string, int iBounds)
@@ -832,7 +845,7 @@ int EXT_FUNC SV_LookupSoundIndex(const char *sample)
 		SV_BuildHashedSoundLookupTable();
 	}
 
-	int starting_index = SV_HashString(sample, 1023);
+	int starting_index = SV_HashString(sample, MAX_SOUNDS_HASHLOOKUP_SIZE);
 	index = starting_index;
 	while (g_psv.sound_precache_hashedlookup[index])
 	{
@@ -1239,9 +1252,9 @@ void EXT_FUNC SV_SendResources_internal(sizebuf_t *msg)
 #endif
 	for (int i = 0; i < g_psv.num_resources; i++, r++)
 	{
-		//I've changed MAX_MODELS to 1024, so I better check that the clients will not know about that!
-		if(r->type == resourcetype_t::t_model && r->nIndex >= 512) {
-			Sys_Error("Sending a model with index >= 512!\n");
+		//I've changed MAX_MODELS and MAX_SOUNDS to 1024, so I better check that the clients will not know about that!
+		if((r->type == resourcetype_t::t_model || r->type == resourcetype_t::t_sound) && r->nIndex >= 512) {
+			Sys_Error("Sending a %s with index %s (must be < 512)!\n", r->type == resourcetype_t::t_model ? "model" : "sound");
 			return;
 		}
 

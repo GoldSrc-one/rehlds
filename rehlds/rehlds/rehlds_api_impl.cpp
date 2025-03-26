@@ -810,6 +810,10 @@ IRehldsHookRegistry_PF_BuildSoundMsg_I* CRehldsHookchains::PF_BuildSoundMsg_I() 
 	return &m_PF_BuildSoundMsg_I;
 }
 
+IRehldsHookRegistry_MapSoundIndex* CRehldsHookchains::MapSoundIndex() {
+	return &m_MapSoundIndex;
+}
+
 IRehldsHookRegistry_SV_WriteFullClientUpdate* CRehldsHookchains::SV_WriteFullClientUpdate() {
 	return &m_SV_WriteFullClientUpdate;
 }

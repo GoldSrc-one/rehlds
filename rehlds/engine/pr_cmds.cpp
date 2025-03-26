@@ -290,6 +290,11 @@ void EXT_FUNC PF_ambientsound_I(edict_t *entity, float *pos, const char *samp, f
 			Con_Printf("no precache: %s\n", samp);
 			return;
 		}
+		soundnum = MapSoundIndex(soundnum);
+		if(!soundnum) {
+			Con_Printf("mapped to zero: %s\n", samp);
+			return;
+		}
 	}
 
 	ent = NUM_FOR_EDICT(entity);

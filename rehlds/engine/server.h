@@ -452,6 +452,7 @@ void SV_StartParticle(const vec_t *org, const vec_t *dir, int color, int count);
 void SV_StartSound(int recipients, edict_t *entity, int channel, const char *sample, int volume, float attenuation, int fFlags, int pitch);
 void SV_StartSound_internal(int recipients, edict_t *entity, int channel, const char *sample, int volume, float attenuation, int fFlags, int pitch);
 qboolean SV_BuildSoundMsg(edict_t *entity, int channel, const char *sample, int volume, float attenuation, int fFlags, int pitch, const float *origin, sizebuf_t *buffer);
+int MapSoundIndex(int sound_num);
 int SV_HashString(const char *string, int iBounds);
 int SV_LookupSoundIndex(const char *sample);
 void SV_BuildHashedSoundLookupTable(void);
