@@ -420,16 +420,14 @@ void CSteam3Server::NotifyClientDisconnect(client_t *cl)
 	if (!cl || !m_bLoggedOn)
 		return;
 
-	if(cl->network_userid.idtype == AUTH_IDTYPE_STEAM || cl->network_userid.idtype == AUTH_IDTYPE_LOCAL)
-		CRehldsPlatformHolder::get()->SteamGameServerExtra(cl->m_sock)->SendUserDisconnect(cl->network_userid.m_SteamID);
+	if(num_extra_games == 0) {
+		CRehldsPlatformHolder::get()->SteamGameServer()->SendUserDisconnect(cl->network_userid.m_SteamID);
+		return;
+	}
 
 	int clientIndex = cl - g_psvs.clients;
-	for(int iGame = 0; iGame < num_extra_games; iGame++) {
-		if(iGame == cl->m_sock - NS_EXTRA)
-			continue;
-
+	for(int iGame = 0; iGame < num_extra_games; iGame++)
 		CRehldsPlatformHolder::get()->SteamGameServerExtra(iGame)->SendUserDisconnect(gExtraSteamIDs[clientIndex][iGame]);
-	}
 
 	for(int iGame = 0; iGame < num_extra_games; iGame++)
 		gExtraSteamIDs[clientIndex][iGame] = 0;
@@ -714,11 +712,6 @@ void CSteam3Client::RunFrame()
 
 uint64 ISteamGameServer_CreateUnauthenticatedUserConnection(client_t* fakeclient)
 {
-	if (!CRehldsPlatformHolder::get()->SteamGameServer())
-	{
-		return 0L;
-	}
-
 	if(num_extra_games == 0)
 		return CRehldsPlatformHolder::get()->SteamGameServer()->CreateUnauthenticatedUserConnection().ConvertToUint64();
 
@@ -732,30 +725,32 @@ uint64 ISteamGameServer_CreateUnauthenticatedUserConnection(client_t* fakeclient
 
 bool Steam_GSBUpdateUserData(uint64 steamIDUser, const char *pchPlayerName, uint32 uScore)
 {
+	if(num_extra_games == 0)
+		return CRehldsPlatformHolder::get()->SteamGameServer()->BUpdateUserData(steamIDUser, pchPlayerName, uScore);
+
+	bool retval = true;
 	for(int iClient = 0; iClient < g_psvs.maxclients; iClient++) {
 		auto client = &g_psvs.clients[iClient];
 		if(!client->active || client->network_userid.m_SteamID != steamIDUser)
 			continue;
 
 		for(int iGame = 0; iGame < num_extra_games; iGame++) {
-			if(!gExtraSteamIDs[iClient][iGame])
+			if(!gExtraSteamIDs[iClient][iGame]) {
+				retval = false;
 				continue;
+			}
 
-			if(!CRehldsPlatformHolder::get()->SteamGameServerExtra(iGame)->BUpdateUserData(gExtraSteamIDs[iClient][iGame], pchPlayerName, uScore))
+			if(!CRehldsPlatformHolder::get()->SteamGameServerExtra(iGame)->BUpdateUserData(gExtraSteamIDs[iClient][iGame], pchPlayerName, uScore)) {
 				gExtraSteamIDs[iClient][iGame] = 0;
+				retval = false;
+			}
 		}
 	}
-
-	return CRehldsPlatformHolder::get()->SteamGameServer()->BUpdateUserData(steamIDUser, pchPlayerName, uScore);
+	return retval;
 }
 
 bool ISteamGameServer_BUpdateUserData(uint64 steamid, const char *netname, uint32 score)
 {
-	if (!CRehldsPlatformHolder::get()->SteamGameServer())
-	{
-		return false;
-	}
-
 	return g_RehldsHookchains.m_Steam_GSBUpdateUserData.callChain(Steam_GSBUpdateUserData, steamid, netname, score);
 }
 
