@@ -3929,7 +3929,7 @@ bool EXT_FUNC NET_GetPacketPreprocessor(uint8* data, unsigned int len, const net
 
 void SV_ReadPackets(void)
 {
-	while (NET_GetExtraPacket() || NET_GetPacket(NS_SERVER))
+	while (num_extra_games ? NET_GetExtraPacket() : NET_GetPacket(NS_SERVER))
 	{
 #ifndef REHLDS_FIXES
 		if (SV_FilterPacket())
@@ -8101,7 +8101,7 @@ void SV_CheckCmdTimes(void)
 
 void SV_CheckForRcon(void)
 {
-	if (g_psv.active || g_pcls.state != ca_dedicated || giActive == DLL_CLOSE || !host_initialized)
+	if (g_psv.active || g_pcls.state != ca_dedicated || giActive == DLL_CLOSE || !host_initialized || num_extra_games)
 		return;
 
 	while (NET_GetPacket(NS_SERVER))

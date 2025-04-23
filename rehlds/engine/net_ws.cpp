@@ -1628,8 +1628,8 @@ void NET_OpenIP()
 		}
 
 		for(int iGame = 0; iGame < num_extra_games; iGame++) {
-			int port = sv_port + iGame + 1;
-			ip_sockets[NS_EXTRA + iGame] = NET_IPSocket(ipname.string, port, FALSE);
+			int port = sv_port + iGame;
+			ip_sockets[NS_EXTRA + iGame] = iGame ? NET_IPSocket(ipname.string, port, FALSE) : ip_sockets[NS_SERVER];
 
 			if(ip_sockets[NS_EXTRA + iGame] == INV_SOCK) {
 				Sys_Error("%s: Couldn't allocate dedicated server IP port %d for extra game %s.", __func__, port, extra_games[iGame]);

@@ -42,10 +42,13 @@ class CSteam3
 protected:
 	bool m_bLoggedOn;
 	bool m_bLogOnResult;
+	bool m_bLogOnResultExtra[MAX_EXTRA_GAMES];
 	HSteamPipe m_hSteamPipe;
 
 protected:
-	CSteam3() : m_bLoggedOn(false), m_bLogOnResult(false), m_hSteamPipe(0) {}
+	CSteam3() : m_bLoggedOn(false), m_bLogOnResult(false), m_hSteamPipe(0) {
+		memset(m_bLogOnResultExtra, false, sizeof(m_bLogOnResultExtra));
+	}
 
 	virtual ~CSteam3() {}
 	virtual void Shutdown() = 0;

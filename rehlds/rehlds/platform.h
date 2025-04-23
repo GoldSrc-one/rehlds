@@ -51,10 +51,20 @@ public:
 	virtual bool SteamGameServer_Init(uint32 unIP, uint16 usSteamPort, uint16 usGamePort, uint16 usQueryPort, EServerMode eServerMode, const char *pchVersionString) = 0;
 	virtual bool SteamGameServer_InitExtra(uint32 unIP, uint16 usSteamPort, uint16 usGamePort, uint16 usQueryPort, EServerMode eServerMode, const char* pchVersionString, int iExtraGame) = 0;
 	virtual ISteamGameServer* SteamGameServer() = 0;
+	virtual ISteamGameServer* SteamGameServerExtra(int iExtraGame) = 0;
 	inline ISteamGameServer* SteamGameServerExtra(netsrc_t clientSock) {
 		return clientSock < NS_EXTRA ? SteamGameServer() : SteamGameServerExtra(clientSock - NS_EXTRA);
 	}
-	virtual ISteamGameServer* SteamGameServerExtra(int iExtraGame) = 0;
+	inline void SteamGameServerDo(std::function<void(ISteamGameServer*)> action) {
+		if(num_extra_games == 0) {
+			action(SteamGameServer());
+		}
+		else {
+			for(int iGame = 0; iGame < num_extra_games; iGame++) {
+				action(SteamGameServerExtra(iGame));
+			}
+		}
+	}
 	virtual void SteamGameServer_RunCallbacks() = 0;
 	virtual void SteamAPI_RunCallbacks() = 0;
 	virtual void SteamGameServer_Shutdown() = 0;

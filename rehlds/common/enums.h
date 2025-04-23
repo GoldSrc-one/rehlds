@@ -16,7 +16,7 @@
 #ifndef ENUMS_H
 #define ENUMS_H
 
-#define MAX_EXTRA_GAMES 4
+#define MAX_EXTRA_GAMES 8
 
 // Used as array indexer
 typedef enum netsrc_s

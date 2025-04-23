@@ -551,8 +551,9 @@ void Host_ClearClients(qboolean bFramesOnly)
 		if (host_client->netchan.remote_address.type)
 		{
 			Q_memcpy(&save, &host_client->netchan.remote_address, sizeof(netadr_t));
+			auto sock = host_client->netchan.sock;
 			Q_memset(&host_client->netchan, 0, sizeof(netchan_t));
-			Netchan_Setup(NS_SERVER, &host_client->netchan, save, host_client - g_psvs.clients, (void *)host_client, SV_GetFragmentSize);
+			Netchan_Setup(sock, &host_client->netchan, save, host_client - g_psvs.clients, (void *)host_client, SV_GetFragmentSize);
 		}
 		COM_ClearCustomizationList(&host_client->customdata, 0);
 	}
