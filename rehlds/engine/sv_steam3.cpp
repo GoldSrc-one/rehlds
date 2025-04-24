@@ -421,13 +421,17 @@ void CSteam3Server::NotifyClientDisconnect(client_t *cl)
 		return;
 
 	if(num_extra_games == 0) {
-		CRehldsPlatformHolder::get()->SteamGameServer()->SendUserDisconnect(cl->network_userid.m_SteamID);
+		if(cl->network_userid.idtype == AUTH_IDTYPE_STEAM || cl->network_userid.idtype == AUTH_IDTYPE_LOCAL)
+			CRehldsPlatformHolder::get()->SteamGameServer()->SendUserDisconnect(cl->network_userid.m_SteamID);
+
 		return;
 	}
 
 	int clientIndex = cl - g_psvs.clients;
-	for(int iGame = 0; iGame < num_extra_games; iGame++)
-		CRehldsPlatformHolder::get()->SteamGameServerExtra(iGame)->SendUserDisconnect(gExtraSteamIDs[clientIndex][iGame]);
+	for(int iGame = 0; iGame < num_extra_games; iGame++) {
+		if(gExtraSteamIDs[clientIndex][iGame])
+			CRehldsPlatformHolder::get()->SteamGameServerExtra(iGame)->SendUserDisconnect(gExtraSteamIDs[clientIndex][iGame]);
+	}
 
 	for(int iGame = 0; iGame < num_extra_games; iGame++)
 		gExtraSteamIDs[clientIndex][iGame] = 0;
