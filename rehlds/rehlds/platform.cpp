@@ -249,6 +249,9 @@ bool CSimplePlatform::SteamGameServer_InitExtra(uint32 unIP, uint16 usSteamPort,
 }
 
 ISteamGameServer* CSimplePlatform::SteamGameServer() {
+	if(num_extra_games)
+		Sys_Error("Unexpected use of SteamGameServer (should be SteamGameServerExtra)!");
+
 	return ::SteamGameServer();
 }
 
