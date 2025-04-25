@@ -35,9 +35,9 @@ void CSteam3Server::OnGSPolicyResponse(GSPolicyResponse_t *pPolicyResponse)
 {
 	ISteamGameServer* sgs = num_extra_games == 0 ? CRehldsPlatformHolder::get()->SteamGameServer() : CRehldsPlatformHolder::get()->SteamGameServerExtra(gCurrentCallbackGame);
 	if (sgs->BSecure())
-		Con_Printf("   VAC secure mode is activated.\n");
+		Con_Printf("   VAC secure mode is activated (%s).\n", num_extra_games ? extra_games[gCurrentCallbackGame] : com_gamedir);
 	else
-		Con_Printf("   VAC secure mode disabled.\n");
+		Con_Printf("   VAC secure mode disabled (%s).\n", num_extra_games ? extra_games[gCurrentCallbackGame] : com_gamedir);
 }
 
 void CSteam3Server::OnLogonSuccess(SteamServersConnected_t *pLogonSuccess)
@@ -46,13 +46,13 @@ void CSteam3Server::OnLogonSuccess(SteamServersConnected_t *pLogonSuccess)
 	if (bLogOnResult)
 	{
 		if (!m_bLanOnly)
-			Con_Printf("Reconnected to Steam servers.\n");
+			Con_Printf("Reconnected to Steam servers (%s).\n", num_extra_games ? extra_games[gCurrentCallbackGame] : com_gamedir);
 	}
 	else
 	{
 		bLogOnResult = true;
 		if (!m_bLanOnly)
-			Con_Printf("Connection to Steam servers successful.\n");
+			Con_Printf("Connection to Steam servers successful (%s).\n", num_extra_games ? extra_games[gCurrentCallbackGame] : com_gamedir);
 	}
 
 	ISteamGameServer* sgs = num_extra_games == 0 ? CRehldsPlatformHolder::get()->SteamGameServer() : CRehldsPlatformHolder::get()->SteamGameServerExtra(gCurrentCallbackGame);
@@ -78,10 +78,10 @@ void CSteam3Server::OnLogonFailure(SteamServerConnectFailure_t *pLogonFailure)
 		{
 			if (!m_bLanOnly)
 			{
-				Con_Printf("Connection to Steam servers successful (SU).\n");
+				Con_Printf("Connection to Steam servers successful (SU) (%s).\n", num_extra_games ? extra_games[gCurrentCallbackGame] : com_gamedir);
 				if (m_bWantToBeSecure)
 				{
-					Con_Printf("   VAC secure mode not available.\n");
+					Con_Printf("   VAC secure mode not available (%s).\n", num_extra_games ? extra_games[gCurrentCallbackGame] : com_gamedir);
 					bLogOnResult = true;
 					return;
 				}
@@ -90,7 +90,7 @@ void CSteam3Server::OnLogonFailure(SteamServerConnectFailure_t *pLogonFailure)
 		else
 		{
 			if (!m_bLanOnly)
-				Con_Printf("Could not establish connection to Steam servers.\n");
+				Con_Printf("Could not establish connection to Steam servers (%s).\n", num_extra_games ? extra_games[gCurrentCallbackGame] : com_gamedir);
 		}
 	}
 
