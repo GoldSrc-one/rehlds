@@ -724,7 +724,7 @@ uint64 ISteamGameServer_CreateUnauthenticatedUserConnection(client_t* fakeclient
 		gExtraSteamIDs[clientIndex][iGame] = CRehldsPlatformHolder::get()->SteamGameServerExtra(iGame)->CreateUnauthenticatedUserConnection().ConvertToUint64();
 	}
 
-	return gExtraSteamIDs[clientIndex][fakeclient->netchan.sock - NS_EXTRA];
+	return gExtraSteamIDs[clientIndex][0];
 }
 
 bool Steam_GSBUpdateUserData(uint64 steamIDUser, const char *pchPlayerName, uint32 uScore)
