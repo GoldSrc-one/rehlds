@@ -180,30 +180,13 @@ void CSteam3Server::OnGSClientApprove(GSClientApprove_t *pGSClientSteam2Accept)
 	if (!cl)
 		return;
 
-	if (SV_FilterUser(&cl->network_userid))
-	{
-		char msg[256];
-		Q_sprintf(msg, "You have been banned from this server\n");
-		SV_RejectConnection(&cl->netchan.remote_address, msg);
-		SV_DropClient(cl, 0, "STEAM UserID %s is in server ban list\n", SV_GetClientIDString(cl));
-	}
-	else if (SV_CheckForDuplicateSteamID(cl) != -1)
-	{
-		char msg[256];
-		Q_sprintf(msg, "Your UserID is already in use on this server.\n");
-		SV_RejectConnection(&cl->netchan.remote_address, msg);
-		SV_DropClient(cl, 0, "STEAM UserID %s is already\nin use on this server\n", SV_GetClientIDString(cl));
-	}
-	else
-	{
-		char msg[512];
-		Q_snprintf(msg, ARRAYSIZE(msg), "\"%s<%i><%s><>\" STEAM USERID validated\n", cl->name, cl->userid, SV_GetClientIDString(cl));
+	char msg[512];
+	Q_snprintf(msg, ARRAYSIZE(msg), "\"%s<%i><%s><>\" STEAM USERID validated\n", cl->name, cl->userid, SV_GetClientIDString(cl));
 #ifdef REHLDS_CHECKS
-		msg[ARRAYSIZE(msg) - 1] = 0;
+	msg[ARRAYSIZE(msg) - 1] = 0;
 #endif
-		Con_DPrintf("%s", msg);
-		Log_Printf("%s", msg);
-	}
+	Con_DPrintf("%s", msg);
+	Log_Printf("%s", msg);
 }
 
 void CSteam3Server::OnGSClientKick(GSClientKick_t *pGSClientKick)
