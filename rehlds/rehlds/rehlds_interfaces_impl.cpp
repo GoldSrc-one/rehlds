@@ -873,37 +873,6 @@ void EXT_FUNC CRehldsServerData::SetGameType(GameType_e gameType) {
 	g_eGameType = gameType;
 }
 
-delta_t** EXT_FUNC CRehldsServerData::GetDeltaPtr(const char * deltaName) {
-	if(Q_strcmp("entity_state_player_t", deltaName) == 0)
-		return &g_pplayerdelta;
-
-	if(Q_strcmp("entity_state_t", deltaName) == 0)
-		return &g_pentitydelta;
-
-	if(Q_strcmp("custom_entity_state_t", deltaName) == 0)
-		return &g_pcustomentitydelta;
-
-	if(Q_strcmp("clientdata_t", deltaName) == 0)
-		return &g_pclientdelta;
-
-	if(Q_strcmp("weapon_data_t", deltaName) == 0)
-		return &g_pweapondelta;
-
-	if(Q_strcmp("event_t", deltaName) == 0)
-		return &g_peventdelta;
-
-#ifdef REHLDS_OPT_PEDANTIC
-	if(Q_strcmp("usercmd_t", deltaName) == 0)
-		return &g_pusercmddelta;
-#endif
-
-	return NULL;
-}
-
-delta_info_t* EXT_FUNC CRehldsServerData::GetDeltaInfoChain() {
-	return g_sv_delta;
-}
-
 void Rehlds_Interfaces_FreeClients()
 {
 	if (g_GameClients == NULL)

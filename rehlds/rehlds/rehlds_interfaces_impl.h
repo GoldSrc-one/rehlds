@@ -350,8 +350,6 @@ public:
 	virtual sizebuf_t *GetSpectatorBuf();
 	virtual sizebuf_t *GetSignonBuf();
 	virtual void SetGameType(GameType_e gameType);
-	virtual delta_t** GetDeltaPtr(const char* deltaName);
-	virtual delta_info_t* GetDeltaInfoChain();
 };
 
 extern CGameClient** g_GameClients;
