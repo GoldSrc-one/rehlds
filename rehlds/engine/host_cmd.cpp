@@ -176,7 +176,7 @@ void SV_GetPlayerHulls(void)
 void Host_InitializeGameDLL(void)
 {
 	Cbuf_Execute();
-	NET_Config(g_psvs.maxclients > 1);
+	NET_Config(g_bIsDedicatedServer);
 
 	if (g_psvs.dll_initialized)
 	{
