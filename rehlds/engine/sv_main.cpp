@@ -6352,7 +6352,7 @@ int SV_SpawnServer(qboolean bIsDemo, char *server, char *startspot)
 	Log_Open();
 	Log_Printf("Loading map \"%s\"\n", server);
 	Log_PrintServerVars();
-	NET_Config((qboolean)(g_psvs.maxclients > 1));
+	NET_Config(g_bIsDedicatedServer);
 
 	pszhost = Cvar_VariableString("hostname");
 	if (pszhost && *pszhost == '\0')
@@ -6531,7 +6531,7 @@ int SV_SpawnServer(qboolean bIsDemo, char *server, char *startspot)
 	}
 	ContinueLoadingProgressBar("Server", 6, 0.0);
 
-	if (g_psvs.maxclients <= 1)
+	if (!g_bIsDedicatedServer)
 		g_psv.worldmapCRC = 0;
 	else
 	{
