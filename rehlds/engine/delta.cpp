@@ -1502,7 +1502,7 @@ qboolean DELTA_ParseDescription(char *name, delta_t **ppdesc, char *pstream)
 	return TRUE;
 }
 
-qboolean EXT_FUNC DELTA_Load(char *name, delta_t **ppdesc, char *pszFile)
+qboolean DELTA_Load(char *name, delta_t **ppdesc, char *pszFile)
 {
 	char *pbuf;
 	qboolean bret;
