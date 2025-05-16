@@ -1277,7 +1277,7 @@ int Host_ValidSave(void)
 		Con_Printf("Can't save multiplayer games.\n");
 		return 0;
 	}
-	if (g_pcls.state != ca_active || g_pcls.signon != 2)
+	if (g_pcls.state != ca_active && g_pcls.state != ca_dedicated)
 	{
 		Con_Printf("Can't save during transition.\n");
 		return 0;
@@ -1383,43 +1383,15 @@ qboolean SaveGameSlot(const char *pSaveName, const char *pSaveComment)
 	gEntityInterface.pfnSaveWriteFields(pSaveData, "GameHeader", &gameHeader, gGameHeaderDescription, ARRAYSIZE(gGameHeaderDescription));
 	gEntityInterface.pfnSaveGlobalState(pSaveData);
 
-	pTokenData = NULL;
+	pTokenData = pSaveData->pCurrentData;
 	for (i = 0; i < pSaveData->tokenCount; i++)
 	{
-		if (pSaveData->pTokens[i])
-		{
-			pSaveData->size += Q_strlen(pSaveData->pTokens[i]) + 1;
-			if (pSaveData->size > pSaveData->bufferSize)
-			{
-				Con_Printf("Token Table Save/Restore overflow!");
-				pSaveData->size = pSaveData->bufferSize;
-				break;
-			}
-			pTokenData = pSaveData->pCurrentData;
-			do
-			{
-				*pTokenData++ = *pSaveData->pTokens[i]++;
-			}
-			while (*pSaveData->pTokens[i]);
-			pSaveData->pCurrentData = pTokenData;
+		while(pSaveData->pTokens[i] && *pSaveData->pTokens[i]) {
+			*pSaveData->pCurrentData++ = *pSaveData->pTokens[i]++;
 		}
-		else
-		{
-			if (pSaveData->size + 1 > pSaveData->bufferSize)
-			{
-				Con_Printf("Token Table Save/Restore overflow!");
-				pSaveData->size = pSaveData->bufferSize;
-				break;
-			}
-			pTokenData = pSaveData->pCurrentData;
-			*pTokenData = 0;
-			pSaveData->pCurrentData = pTokenData + 1;
-		}
+		*pSaveData->pCurrentData++ = 0;
 	}
 	pSaveData->tokenSize = (int)(pSaveData->pCurrentData - pTokenData);
-
-	if (pSaveData->size < pSaveData->bufferSize)
-		pSaveData->size -= pSaveData->tokenSize;
 
 	Q_snprintf(name, 252, "%s%s", Host_SaveGameDirectory(), pSaveName);
 	COM_DefaultExtension(name, ".sav");
@@ -1438,7 +1410,7 @@ qboolean SaveGameSlot(const char *pSaveName, const char *pSaveComment)
 	FS_Write(&pSaveData->size, sizeof(int), 1, pFile);
 	FS_Write(&pSaveData->tokenCount, sizeof(int), 1, pFile);
 	FS_Write(&pSaveData->tokenSize, sizeof(int), 1, pFile);
-	FS_Write(pSaveData->pCurrentData, pSaveData->tokenSize, 1, pFile);
+	FS_Write(pTokenData, pSaveData->tokenSize, 1, pFile);
 	FS_Write(pSaveData->pBaseData, pSaveData->size, 1, pFile);
 	DirectoryCopy(hlPath, pFile);
 	FS_Close(pFile);
@@ -1465,7 +1437,8 @@ void Host_Savegame_f(void)
 		Con_DPrintf("Relative pathnames are not allowed.\n");
 		return;
 	}
-	g_pSaveGameCommentFunc(szTemp, 80);
+	if(g_pSaveGameCommentFunc)
+		g_pSaveGameCommentFunc(szTemp, 80);
 	Q_snprintf(szComment, sizeof(szComment) - 1,"%-64.64s %02d:%02d", szTemp, (int)(g_psv.time / 60.0), (int)fmod(g_psv.time, 60.0));
 	SaveGameSlot(Cmd_Argv(1), szComment);
 	CL_HudMessage("GAMESAVED");
@@ -1478,7 +1451,8 @@ void Host_AutoSave_f(void)
 
 	if (Host_ValidSave())
 	{
-		g_pSaveGameCommentFunc(szTemp, 80);
+		if(g_pSaveGameCommentFunc)
+			g_pSaveGameCommentFunc(szTemp, 80);
 		Q_snprintf(szComment, sizeof(szComment) - 1, "%-64.64s %02d:%02d", szTemp, (int)(g_psv.time / 60.0), (int)fmod(g_psv.time, 60.0));
 		szComment[sizeof(szComment) - 1] = 0;
 		SaveGameSlot("autosave", szComment);
@@ -1733,10 +1707,6 @@ SAVERESTOREDATA *SaveGamestate(void)
 		}
 	}
 
-	dataSize = pSaveData->size;
-	pTableData = pSaveData->pCurrentData;
-	tableSize = 0;
-
 	for (i = 0; i < g_psv.num_edicts; i++)
 	{
 		pent = &g_psv.edicts[i];
@@ -1749,28 +1719,22 @@ SAVERESTOREDATA *SaveGamestate(void)
 				pSaveData->pTable[i].flags |= FENTTABLE_PLAYER;
 		}
 	}
+
+	dataSize = pSaveData->size;
+
+	pTableData = pSaveData->pCurrentData;
 	for (i = 0; i < g_psv.num_edicts; i++)
 		gEntityInterface.pfnSaveWriteFields(pSaveData, "ETABLE", &pSaveData->pTable[i], gEntityTableDescription, ARRAYSIZE(gEntityTableDescription));
 
-	pTokenData = NULL;
+	tableSize = pSaveData->pCurrentData - pTableData;
+
+	pTokenData = pSaveData->pCurrentData;
 	for (i = 0; i < pSaveData->tokenCount; i++)
 	{
-		if (pSaveData->pTokens[i])
-		{
-			pTokenData = pSaveData->pCurrentData;
-			do
-			{
-				*pTokenData++ = *pSaveData->pTokens[i]++;
-			}
-			while (*pSaveData->pTokens[i]);
-			pSaveData->pCurrentData = pTokenData;
+		while(pSaveData->pTokens[i] && *pSaveData->pTokens[i]) {
+			*pSaveData->pCurrentData++ = *pSaveData->pTokens[i]++;
 		}
-		else
-		{
-			pTokenData = pSaveData->pCurrentData;
-			*pTokenData = 0;
-			pSaveData->pCurrentData = pTokenData + 1;
-		}
+		*pSaveData->pCurrentData++ = 0;
 	}
 	pSaveData->tokenSize = (int)(pSaveData->pCurrentData - pTokenData);
 
@@ -1790,7 +1754,7 @@ SAVERESTOREDATA *SaveGamestate(void)
 	FS_Write(&pSaveData->tableCount, sizeof(int), 1, pFile);
 	FS_Write(&pSaveData->tokenCount, sizeof(int), 1, pFile);
 	FS_Write(&pSaveData->tokenSize, sizeof(int), 1, pFile);
-	FS_Write(pSaveData->pCurrentData, pSaveData->tokenSize, 1, pFile);
+	FS_Write(pTokenData, pSaveData->tokenSize, 1, pFile);
 	FS_Write(pTableData, tableSize, 1, pFile);
 	FS_Write(pSaveData->pBaseData, dataSize, 1, pFile);
 	FS_Close(pFile);
@@ -1889,8 +1853,8 @@ SAVERESTOREDATA *LoadSaveData(const char *level)
 	pSaveData->connectionCount = 0;
 	pSaveData->size = 0;
 
-	pSaveData->pBaseData = pszTokenList;
-	pSaveData->pCurrentData = pszTokenList;
+	pSaveData->pBaseData = (char*)(pSaveData->pTable + tableCount);
+	pSaveData->pCurrentData = (char*)(pSaveData->pTable + tableCount);
 
 	pSaveData->fUseLandmark = 1;
 	pSaveData->bufferSize = size;
@@ -2243,9 +2207,9 @@ void LoadAdjacentEntities(const char *pOldLevel, const char *pLandmarkName)
 			LandmarkOrigin(&currentLevelData, landmarkOrigin, pLandmarkName);
 			LandmarkOrigin(pSaveData, pSaveData->vecLandmarkOffset, pLandmarkName);
 
-			pSaveData->vecLandmarkOffset[0] -= landmarkOrigin[0];
-			pSaveData->vecLandmarkOffset[1] -= landmarkOrigin[1];
-			pSaveData->vecLandmarkOffset[2] -= landmarkOrigin[2];
+			pSaveData->vecLandmarkOffset[0] = landmarkOrigin[0] - pSaveData->vecLandmarkOffset[0];
+			pSaveData->vecLandmarkOffset[1] = landmarkOrigin[1] - pSaveData->vecLandmarkOffset[1];
+			pSaveData->vecLandmarkOffset[2] = landmarkOrigin[2] - pSaveData->vecLandmarkOffset[2];
 
 			if (!Q_strcmp(currentLevelData.levelList[i].mapName, pOldLevel))
 				flags |= FENTTABLE_PLAYER;
@@ -2334,7 +2298,7 @@ void DirectoryExtract(FileHandle_t pFile, int fileCount)
 		Q_snprintf(szName, sizeof(szName), "%s%s", Host_SaveGameDirectory(), fileName);
 		COM_FixSlashes(szName);
 		pCopy = FS_OpenPathID(szName, "wb", "GAMECONFIG");
-		FileCopy(pCopy, pFile, fileCount);
+		FileCopy(pCopy, pFile, fileSize);
 		FS_Close(pCopy);
 	}
 }
