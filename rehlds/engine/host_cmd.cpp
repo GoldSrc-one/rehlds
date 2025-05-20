@@ -1959,6 +1959,7 @@ void EntityPatchRead(SAVERESTOREDATA *pSaveData, const char *level)
 		FS_Read(&entityId, 4, 1, pFile);
 		pSaveData->pTable[entityId].flags = FENTTABLE_REMOVED;
 	}
+	FS_Close(pFile);
 }
 
 int LoadGamestate(char *level, int createPlayers)
@@ -1997,13 +1998,13 @@ int LoadGamestate(char *level, int createPlayers)
 			if (pEntInfo->id)
 			{
 				if (pEntInfo->id > g_psvs.maxclients)
-					pEntInfo->pent = CreateNamedEntity(pEntInfo->classname);
+					pent = CreateNamedEntity(pEntInfo->classname);
 				else
 				{
 					if (!(pEntInfo->flags & FENTTABLE_PLAYER))
 						Sys_Error("%s: ENTITY IS NOT A PLAYER: %d\n", __func__, i);
 
-					pent = g_psvs.clients[pEntInfo->id - 1].edict;
+					pent = EDICT_NUM(pEntInfo->id);
 					if (createPlayers && pent)
 						EntityInit(pent, pEntInfo->classname);
 					else
@@ -2401,6 +2402,13 @@ void Host_Changelevel2_f(void)
 	oldlevel[sizeof(oldlevel) - 1] = 0;
 
 	pSaveData = SaveGamestate();
+
+	if(g_bIsDedicatedServer) {
+		g_psvs.clients->crcValue = 0;
+		Netchan_Clear(&g_pcls.netchan);
+		SZ_Clear(&g_pcls.netchan.message);
+	}
+	
 	SV_ServerShutdown();
 	FS_LogLevelLoadStarted(level);
 

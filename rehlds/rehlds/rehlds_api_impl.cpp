@@ -418,6 +418,9 @@ void EXT_FUNC RemoveExtDll_api(void *hModule)
 				i = g_iextdllMac;
 			}
 
+			if(g_rgextdll[i].functionTable)
+				Mem_Free(g_rgextdll[i].functionTable);
+
 			Q_memset(&g_rgextdll[i], 0, sizeof(g_rgextdll[0]));
 			break;
 		}

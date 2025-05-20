@@ -693,14 +693,34 @@ DISPATCHFUNCTION GetDispatch(char *pname)
 	return NULL;
 }
 
+void LoadFunctionTable(extensiondll_t* pDll) {
+#ifdef _WIN32
+	Module module;
+	if(FindModuleByAddress((size_t)pDll->lDLLHandle, &module)) {
+		auto exportDirectory = (PIMAGE_EXPORT_DIRECTORY)module.exportDirectory;
+		pDll->functionCount = exportDirectory->NumberOfNames;
+		pDll->functionTable = (functiontable_t*)Mem_Calloc(pDll->functionCount, sizeof(functiontable_t));
+		auto functions = (uint32*)(module.base + exportDirectory->AddressOfFunctions);
+		auto names = (const char**)(module.base + exportDirectory->AddressOfNames);
+		for(int i = 0; i < pDll->functionCount; i++) {
+			pDll->functionTable[i].pFunction = module.base + functions[i];
+			pDll->functionTable[i].pFunctionName = module.base + names[i];
+		}
+	}
+#endif
+}
+
 const char *FindAddressInTable(extensiondll_t *pDll, uint32 function)
 {
 #ifdef _WIN32
+	if(!pDll->functionTable)
+		LoadFunctionTable(pDll);
+
 	for (int i = 0; i < pDll->functionCount; i++)
 	{
-		if (pDll[i].functionTable->pFunction == function)
+		if (pDll->functionTable[i].pFunction == function)
 		{
-			return pDll[i].functionTable->pFunctionName;
+			return pDll->functionTable[i].pFunctionName;
 		}
 	}
 #else // _WIN32
@@ -717,11 +737,14 @@ const char *FindAddressInTable(extensiondll_t *pDll, uint32 function)
 uint32 FindNameInTable(extensiondll_t *pDll, const char *pName)
 {
 #ifdef _WIN32
+	if(!pDll->functionTable)
+		LoadFunctionTable(pDll);
+
 	for (int i = 0; i < pDll->functionCount; i++)
 	{
 		if (!Q_strcmp(pName, pDll->functionTable[i].pFunctionName))
 		{
-			return pDll[i].functionTable->pFunction;
+			return pDll->functionTable[i].pFunction;
 		}
 	}
 	return NULL;
@@ -749,7 +772,14 @@ NOBODY const char *ConvertNameToLocalPlatform(const char *pchInName);
 
 uint32 EXT_FUNC FunctionFromName(const char *pName)
 {
-	return 0; //TODO: do we really need to reverse it?
+	for(int i = 0; i < g_iextdllMac; i++) {
+		auto fn = FindNameInTable(&g_rgextdll[i], pName);
+		if(fn)
+			return fn;
+	}
+
+	Con_Printf("Can't find function: '%s'\n", pName);
+	return NULL;
 }
 
 const char* EXT_FUNC NameForFunction(uint32 function)

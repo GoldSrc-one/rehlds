@@ -444,6 +444,8 @@ void ProcessModuleData(Module *module)
 	module->codeSection.size = CodeSection->Misc.VirtualSize;
 	module->codeSection.end = module->codeSection.start + module->codeSection.size;
 	module->codeSection.next = NULL;
+
+	module->exportDirectory = (PIMAGE_EXPORT_DIRECTORY)(module->base + NTHeaders->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT].VirtualAddress);
 }
 #else // _WIN32
 void ProcessModuleData(Module *module)

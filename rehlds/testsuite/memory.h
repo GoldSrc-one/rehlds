@@ -55,6 +55,7 @@ struct Module
 
 #ifdef _WIN32
 	Section codeSection;
+	const void* exportDirectory;
 #endif // _WIN32
 };
 

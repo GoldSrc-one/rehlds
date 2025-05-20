@@ -6318,7 +6318,7 @@ int SV_SpawnServer(qboolean bIsDemo, char *server, char *startspot)
 	char *pszhost;
 	char oldname[64];
 
-	if (g_psv.active)
+	if (g_psv.active && !startspot)
 	{
 		cl = g_psvs.clients;
 		for (i = 0; i < g_psvs.maxclients; i++, cl++)
