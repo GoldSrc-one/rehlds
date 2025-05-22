@@ -452,7 +452,7 @@ void SV_DropClient(client_t *cl, qboolean crash, const char *fmt, ...)
 
 void SV_DropClient_internal(client_t *cl, qboolean crash, const char *string)
 {
-	if(g_psv.loadgame && cl->spawned)
+	if(g_psv.loadgame && !cl->fakeclient)
 		cl->edict = NULL; //suppress client disconnect in singleplayer
 
 	int i;
