@@ -1504,6 +1504,9 @@ void SV_WriteSpawn(sizebuf_t *msg)
 	host_client->connected = TRUE;
 	host_client->fully_connected = FALSE;
 
+	if(g_psvs.maxclients == 1)
+		g_psv.loadgame = TRUE; //unify singleplayer client reconnect behavior
+
 #ifdef REHLDS_FIXES
 	g_GameClients[host_client - g_psvs.clients]->SetSpawnedOnce(true);
 #endif // REHLDS_FIXES
