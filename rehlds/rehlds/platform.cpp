@@ -237,7 +237,12 @@ bool CSimplePlatform::SteamGameServer_Init(uint32 unIP, uint16 usSteamPort, uint
 }
 
 static int gExtraGame;
-static uint32 getAppIdExtra(ISteamUtils* that, const void* edx) {
+#ifdef _WIN32
+static uint32 __fastcall getAppIdExtra(ISteamUtils* that, const void* edx)
+#else
+static uint32 getAppIdExtra(ISteamUtils* that)
+#endif
+{
 	if(gExtraGame == -1)
 		return -1;
 
