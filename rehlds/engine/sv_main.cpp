@@ -2487,18 +2487,12 @@ void EXT_FUNC SV_ConnectClient_internal(void)
 		}
 
 		if(SV_FilterUser(&client->network_userid)) {
-			char msg[256];
-			Q_sprintf(msg, "You have been banned from this server\n");
-			SV_RejectConnection(&client->netchan.remote_address, msg);
-			SV_DropClient(client, 0, "STEAM UserID %s is in server ban list\n", SV_GetClientIDString(client));
+			SV_RejectConnection(&adr, "You have been banned from this server\n");
 			return;
 		}
 
 		if(SV_CheckForDuplicateSteamID(client) != -1) {
-			char msg[256];
-			Q_sprintf(msg, "Your UserID is already in use on this server.\n");
-			SV_RejectConnection(&client->netchan.remote_address, msg);
-			SV_DropClient(client, 0, "STEAM UserID %s is already\nin use on this server\n", SV_GetClientIDString(client));
+			SV_RejectConnection(&adr, "Your UserID is already in use on this server.\n");
 			return;
 		}
 
