@@ -38,17 +38,15 @@ jobs:
         run: |
           msbuild ${{ env.solution }} -p:Configuration="${{ env.buildRelease }}" /t:Clean,Build /p:Platform=${{ env.buildPlatform }} /p:PlatformToolset=v140_xp /p:XPDeprecationWarning=false
 
-      - name: Get rcedit from chocolatey
-        run: |
-          choco install rcedit -y
-        shell: "pwsh"
-
       - name: Move files
         run: |
-          move msvc\${{ env.buildRelease }}\hlds.exe publish\bin\win32\hlds.exe
-          move msvc\${{ env.buildRelease }}\swds.dll publish\bin\win32\swds.dll
-          move msvc\${{ env.buildRelease }}\hlds.pdb publish\debug\hlds.pdb
-          move msvc\${{ env.buildRelease }}\swds.pdb publish\debug\swds.pdb
+
+
+          mkdir publish
+          move msvc\${{ env.buildRelease }}\hlds.exe publish\hlds.exe
+          move msvc\${{ env.buildRelease }}\swds.dll publish\swds.dll
+          move msvc\${{ env.buildRelease }}\hlds.pdb publish\hlds.pdb
+          move msvc\${{ env.buildRelease }}\swds.pdb publish\swds.pdb
 
       - name: Deploy artifacts
         uses: actions/upload-artifact@v4
@@ -96,7 +94,8 @@ jobs:
 
       - name: Move files
         run: |
-          mv build/rehlds/engine_i486.so publish/bin/linux32/engine_i486.so
+          mkdir -p publish
+          mv build/rehlds/engine_i486.so publish/engine_i486.so
 
       - name: Deploy artifacts
         uses: actions/upload-artifact@v4
