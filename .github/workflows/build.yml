@@ -1,5 +1,7 @@
 name: C/C++ CI
-
+permissions:
+  contents: write
+  
 on:
   push:
     branches: [master]
@@ -40,8 +42,6 @@ jobs:
 
       - name: Move files
         run: |
-
-
           mkdir publish
           move msvc\${{ env.buildRelease }}\hlds.exe publish\hlds.exe
           move msvc\${{ env.buildRelease }}\swds.dll publish\swds.dll
