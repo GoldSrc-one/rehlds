@@ -124,8 +124,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         id: publish-job
         if: |
-          startsWith(github.ref, 'refs/tags/') &&
-          steps.packaging-job.outcome == 'success'
+          startsWith(github.ref, 'refs/tags/')
         with:
           files: |
             *.exe
