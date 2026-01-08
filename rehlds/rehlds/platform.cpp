@@ -157,14 +157,6 @@ int CSimplePlatform::WSAGetLastError() {
 }
 
 #endif //WIN32
-void CSimplePlatform::SteamAPI_SetBreakpadAppID(uint32 unAppID) {
-	return ::SteamAPI_SetBreakpadAppID(unAppID);
-}
-
-void CSimplePlatform::SteamAPI_UseBreakpadCrashHandler(char const *pchVersion, char const *pchDate, char const *pchTime, bool bFullMemoryDumps, void *pvContext, PFNPreMinidumpCallback m_pfnPreMinidumpCallback) {
-	::SteamAPI_UseBreakpadCrashHandler(pchVersion, pchDate, pchTime, bFullMemoryDumps, pvContext, m_pfnPreMinidumpCallback);
-}
-
 
 static dllhandle_t getSteamApiExtra(int iExtraGame)
 {
@@ -209,6 +201,25 @@ static dllhandle_t getSteamApiExtra(int iExtraGame)
 		Sys_Error("Couldn't load %s!", libName);
 
 	return (dllhandle_t)lib;
+}
+
+void CSimplePlatform::SteamAPI_SetBreakpadAppID(uint32 unAppID) {
+	if(num_extra_games == 0)
+		return ::SteamAPI_SetBreakpadAppID(unAppID);
+
+	for(int iGame = 0; iGame < num_extra_games; iGame++) {
+		if(!COM_CheckParm("-nobreakpad")) {
+			auto pfnSteamAPI_UseBreakpadCrashHandler = (void (*)(char const* pchVersion, char const* pchDate, char const* pchTime, bool bFullMemoryDumps, void* pvContext, PFNPreMinidumpCallback m_pfnPreMinidumpCallback))Sys_GetProcAddress(getSteamApiExtra(iGame), "SteamAPI_UseBreakpadCrashHandler");
+			pfnSteamAPI_UseBreakpadCrashHandler(va("%d", build_number()), __BUILD_DATE__, __BUILD_TIME__, 0, 0, 0);
+		}
+
+		auto pfnSteamAPI_SetBreakpadAppID = (void (*)(uint32 unAppID))Sys_GetProcAddress(getSteamApiExtra(iGame), "SteamAPI_SetBreakpadAppID");
+		pfnSteamAPI_SetBreakpadAppID(GetGameAppIDByName(extra_games[iGame]));
+	}
+}
+
+void CSimplePlatform::SteamAPI_UseBreakpadCrashHandler(char const* pchVersion, char const* pchDate, char const* pchTime, bool bFullMemoryDumps, void* pvContext, PFNPreMinidumpCallback m_pfnPreMinidumpCallback) {
+	return ::SteamAPI_UseBreakpadCrashHandler(pchVersion, pchDate, pchTime, bFullMemoryDumps, pvContext, m_pfnPreMinidumpCallback);
 }
 
 void CSimplePlatform::SteamAPI_RegisterCallback(CCallbackBase *pCallback, int iCallback) {
@@ -282,7 +293,6 @@ bool CSimplePlatform::SteamGameServer_InitExtra(uint32 unIP, uint16 usSteamPort,
 	auto pfnSteamGameServer_Init = (bool(*)(uint32 unIP, uint16 usSteamPort, uint16 usGamePort, uint16 usQueryPort, EServerMode eServerMode, const char* pchVersionString))Sys_GetProcAddress(getSteamApiExtra(iExtraGame), "SteamGameServer_Init");
 
 	gExtraGame = iExtraGame;
-
 	return pfnSteamGameServer_Init(unIP, usSteamPort, usGamePort, usQueryPort, eServerMode, gpszVersionString);
 }
 

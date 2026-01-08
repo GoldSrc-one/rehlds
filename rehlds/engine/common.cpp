@@ -2317,6 +2317,15 @@ qboolean COM_SetupDirectories(void)
 	COM_ParseDirectoryFromCmd("-basedir", pDirName, "valve");
 	COM_ParseDirectoryFromCmd("-game", com_gamedir, pDirName);
 
+	num_extra_games = 0;
+	for(int iGame = 0; iGame < MAX_EXTRA_GAMES; iGame++) {
+		char gameParm[] = "-sgame0";
+		gameParm[sizeof(gameParm) - 2] = '1' + iGame;
+		for(int iArg = 1; iArg < com_argc - 1; iArg++)
+			if(Q_strcmp(com_argv[iArg], gameParm) == 0)
+				extra_games[num_extra_games++] = com_argv[++iArg];
+	}
+
 	if (FileSystem_SetGameDirectory(pDirName, (const char *)(com_gamedir[0] != 0 ? com_gamedir : 0)))
 	{
 		Info_SetValueForStarKey(Info_Serverinfo(), "*gamedir", com_gamedir, MAX_INFO_STRING);

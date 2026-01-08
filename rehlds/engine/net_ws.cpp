@@ -1898,15 +1898,6 @@ void NET_Config(qboolean multiplayer)
 
 	old_config = multiplayer;
 
-	num_extra_games = 0;
-	for(int iGame = 0; iGame < MAX_EXTRA_GAMES; iGame++) {
-		char gameParm[] = "-sgame0";
-		gameParm[sizeof(gameParm) - 2] = '1' + iGame;
-		for(int iArg = 1; iArg < com_argc - 1; iArg++)
-			if(Q_strcmp(com_argv[iArg], gameParm) == 0)
-				extra_games[num_extra_games++] = com_argv[++iArg];
-	}
-
 	if (multiplayer)
 	{
 		if (!noip)
