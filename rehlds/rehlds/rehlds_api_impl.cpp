@@ -812,10 +812,6 @@ IRehldsHookRegistry_PF_BuildSoundMsg_I* CRehldsHookchains::PF_BuildSoundMsg_I() 
 	return &m_PF_BuildSoundMsg_I;
 }
 
-IRehldsHookRegistry_MapSoundIndex* CRehldsHookchains::MapSoundIndex() {
-	return &m_MapSoundIndex;
-}
-
 IRehldsHookRegistry_SV_WriteFullClientUpdate* CRehldsHookchains::SV_WriteFullClientUpdate() {
 	return &m_SV_WriteFullClientUpdate;
 }
@@ -826,10 +822,6 @@ IRehldsHookRegistry_SV_CheckConsistencyResponse* CRehldsHookchains::SV_CheckCons
 
 IRehldsHookRegistry_SV_DropClient* CRehldsHookchains::SV_DropClient() {
 	return &m_SV_DropClient;
-}
-
-IRehldsHookRegistry_SV_LoadEntities* CRehldsHookchains::SV_LoadEntities() {
-	return &m_SV_LoadEntities;
 }
 
 IRehldsHookRegistry_SV_ActivateServer* CRehldsHookchains::SV_ActivateServer() {
@@ -943,6 +935,14 @@ IRehldsHookRegistry_SV_AllowPhysent* CRehldsHookchains::SV_AllowPhysent() {
 
 IRehldsHookRegistry_SV_SendResources* CRehldsHookchains::SV_SendResources() {
 	return &m_SV_SendResources;
+}
+
+IRehldsHookRegistry_MapSoundIndex* CRehldsHookchains::MapSoundIndex() {
+	return &m_MapSoundIndex;
+}
+
+IRehldsHookRegistry_SV_LoadEntities* CRehldsHookchains::SV_LoadEntities() {
+	return &m_SV_LoadEntities;
 }
 
 IRehldsHookRegistry_SV_SendUserReg* CRehldsHookchains::SV_SendUserReg() {

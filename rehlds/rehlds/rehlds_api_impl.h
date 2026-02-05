@@ -134,10 +134,6 @@ typedef IVoidHookChainRegistryImpl<edict_t *> CRehldsHookRegistry_PF_Remove_I;
 typedef IVoidHookChainImpl<edict_t *, int, const char *, float, float, int, int, int, int, const float *, edict_t *> CRehldsHook_PF_BuildSoundMsg_I;
 typedef IVoidHookChainRegistryImpl<edict_t *, int, const char *, float, float, int, int, int, int, const float *, edict_t *> CRehldsHookRegistry_PF_BuildSoundMsg_I;
 
-//MapSoundIndex hook
-typedef IHookChainImpl<int, int> CRehldsHook_MapSoundIndex;
-typedef IHookChainRegistryImpl<int, int> CRehldsHookRegistry_MapSoundIndex;
-
 //SV_WriteFullClientUpdate hook
 typedef IVoidHookChainImpl<IGameClient *, char *, size_t, sizebuf_t *, IGameClient *> CRehldsHook_SV_WriteFullClientUpdate;
 typedef IVoidHookChainRegistryImpl<IGameClient *, char *, size_t, sizebuf_t *, IGameClient *> CRehldsHookRegistry_SV_WriteFullClientUpdate;
@@ -149,10 +145,6 @@ typedef IHookChainRegistryImpl<bool, IGameClient *, resource_t *, uint32> CRehld
 //SV_DropClient hook
 typedef IVoidHookChainImpl<IGameClient*, bool, const char*> CRehldsHook_SV_DropClient;
 typedef IVoidHookChainRegistryImpl<IGameClient*, bool, const char*> CRehldsHookRegistry_SV_DropClient;
-
-//SV_ActivateServer hook
-typedef IVoidHookChainImpl<> CRehldsHook_SV_LoadEntities;
-typedef IVoidHookChainRegistryImpl<> CRehldsHookRegistry_SV_LoadEntities;
 
 //SV_ActivateServer hook
 typedef IVoidHookChainImpl<int> CRehldsHook_SV_ActivateServer;
@@ -266,6 +258,14 @@ typedef IHookChainRegistryImpl<bool, edict_t*, edict_t*> CRehldsHookRegistry_SV_
 typedef IVoidHookChainImpl<sizebuf_t *> CRehldsHook_SV_SendResources;
 typedef IVoidHookChainRegistryImpl<sizebuf_t *> CRehldsHookRegistry_SV_SendResources;
 
+//MapSoundIndex hook
+typedef IHookChainImpl<int, int> CRehldsHook_MapSoundIndex;
+typedef IHookChainRegistryImpl<int, int> CRehldsHookRegistry_MapSoundIndex;
+
+//SV_LoadEntities hook
+typedef IVoidHookChainImpl<> CRehldsHook_SV_LoadEntities;
+typedef IVoidHookChainRegistryImpl<> CRehldsHookRegistry_SV_LoadEntities;
+
 //SV_SendUserReg hook
 typedef IVoidHookChainImpl<sizebuf_t*, UserMsg*> CRehldsHook_SV_SendUserReg;
 typedef IVoidHookChainRegistryImpl<sizebuf_t*, UserMsg*> CRehldsHookRegistry_SV_SendUserReg;
@@ -305,11 +305,9 @@ public:
 	CRehldsHookRegistry_SV_StartSound m_SV_StartSound;
 	CRehldsHookRegistry_PF_Remove_I m_PF_Remove_I;
 	CRehldsHookRegistry_PF_BuildSoundMsg_I m_PF_BuildSoundMsg_I;
-	CRehldsHookRegistry_MapSoundIndex m_MapSoundIndex;
 	CRehldsHookRegistry_SV_WriteFullClientUpdate m_SV_WriteFullClientUpdate;
 	CRehldsHookRegistry_SV_CheckConsistencyResponse m_SV_CheckConsistencyResponse;
 	CRehldsHookRegistry_SV_DropClient m_SV_DropClient;
-	CRehldsHookRegistry_SV_LoadEntities m_SV_LoadEntities;
 	CRehldsHookRegistry_SV_ActivateServer m_SV_ActivateServer;
 	CRehldsHookRegistry_SV_WriteVoiceCodec m_SV_WriteVoiceCodec;
 	CRehldsHookRegistry_Steam_GSGetSteamID m_Steam_GSGetSteamID;
@@ -338,6 +336,8 @@ public:
 	CRehldsHookRegistry_SV_ClientPrintf m_SV_ClientPrintf;
 	CRehldsHookRegistry_SV_AllowPhysent m_SV_AllowPhysent;
 	CRehldsHookRegistry_SV_SendResources m_SV_SendResources;
+	CRehldsHookRegistry_MapSoundIndex m_MapSoundIndex;
+	CRehldsHookRegistry_SV_LoadEntities m_SV_LoadEntities;
 	CRehldsHookRegistry_SV_SendUserReg m_SV_SendUserReg;
 	CRehldsHookRegistry_SV_WriteBaselineMessage m_SV_WriteBaselineMessage;
 	CRehldsHookRegistry_SV_SendClientDatagram m_SV_SendClientDatagram;
@@ -368,11 +368,9 @@ public:
 	EXT_FUNC virtual IRehldsHookRegistry_SV_StartSound* SV_StartSound();
 	EXT_FUNC virtual IRehldsHookRegistry_PF_Remove_I* PF_Remove_I();
 	EXT_FUNC virtual IRehldsHookRegistry_PF_BuildSoundMsg_I* PF_BuildSoundMsg_I();
-	EXT_FUNC virtual IRehldsHookRegistry_MapSoundIndex* MapSoundIndex();
 	EXT_FUNC virtual IRehldsHookRegistry_SV_WriteFullClientUpdate* SV_WriteFullClientUpdate();
 	EXT_FUNC virtual IRehldsHookRegistry_SV_CheckConsistencyResponse* SV_CheckConsistencyResponse();
 	EXT_FUNC virtual IRehldsHookRegistry_SV_DropClient* SV_DropClient();
-	EXT_FUNC virtual IRehldsHookRegistry_SV_LoadEntities* SV_LoadEntities();
 	EXT_FUNC virtual IRehldsHookRegistry_SV_ActivateServer* SV_ActivateServer();
 	EXT_FUNC virtual IRehldsHookRegistry_SV_WriteVoiceCodec* SV_WriteVoiceCodec();
 	EXT_FUNC virtual IRehldsHookRegistry_Steam_GSGetSteamID* Steam_GSGetSteamID();
@@ -401,6 +399,8 @@ public:
 	EXT_FUNC virtual IRehldsHookRegistry_SV_ClientPrintf* SV_ClientPrintf();
 	EXT_FUNC virtual IRehldsHookRegistry_SV_AllowPhysent* SV_AllowPhysent();
 	EXT_FUNC virtual IRehldsHookRegistry_SV_SendResources* SV_SendResources();
+	EXT_FUNC virtual IRehldsHookRegistry_MapSoundIndex* MapSoundIndex();
+	EXT_FUNC virtual IRehldsHookRegistry_SV_LoadEntities* SV_LoadEntities();
 	EXT_FUNC virtual IRehldsHookRegistry_SV_SendUserReg* SV_SendUserReg();
 	EXT_FUNC virtual IRehldsHookRegistry_SV_WriteBaselineMessage* SV_WriteBaselineMessage();
 	EXT_FUNC virtual IRehldsHookRegistry_SV_SendClientDatagram* SV_SendClientDatagram();
