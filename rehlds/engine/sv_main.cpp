@@ -1515,15 +1515,12 @@ void SV_WriteSpawn(sizebuf_t *msg)
 	NotifyDedicatedServerUI("UpdatePlayers");
 }
 
-<<<<<<< HEAD
 void SV_SendUserReg(sizebuf_t *msg, UserMsg *pUserMsgs)
-=======
-void SV_SendUserReg(sizebuf_t *msg) {
-	g_RehldsHookchains.m_SV_SendUserReg.callChain(SV_SendUserReg_internal, msg);
+{
+	g_RehldsHookchains.m_SV_SendUserReg.callChain(SV_SendUserReg_internal, msg, pUserMsgs);
 }
 
-void EXT_FUNC SV_SendUserReg_internal(sizebuf_t *msg)
->>>>>>> 594d8e9... add user init msg hooks
+void EXT_FUNC SV_SendUserReg_internal(sizebuf_t *msg, UserMsg* pUserMsgs)
 {
 	if (!pUserMsgs)
 		return;
@@ -6203,7 +6200,6 @@ void EXT_FUNC SV_ActivateServer_internal(int runPhysics)
 	unsigned char data[NET_MAX_PAYLOAD];
 	sizebuf_t msg;
 	client_t *cl;
-	UserMsg *pTemp;
 	char szCommand[256];
 
 	Q_memset(&msg, 0, sizeof(sizebuf_t));

@@ -468,12 +468,9 @@ void SV_SendResources(sizebuf_t *msg);
 void SV_SendResources_internal(sizebuf_t *msg);
 void SV_WriteClientdataToMessage(client_t *client, sizebuf_t *msg);
 void SV_WriteSpawn(sizebuf_t *msg);
-<<<<<<< HEAD
 void SV_SendUserReg(sizebuf_t *msg, UserMsg *pUserMsgs);
-=======
-void SV_SendUserReg(sizebuf_t* msg);
-void SV_SendUserReg_internal(sizebuf_t *msg);
->>>>>>> 594d8e9... add user init msg hooks
+void SV_SendUserReg(sizebuf_t * msg, UserMsg * pUserMsgs);
+void SV_SendUserReg_internal(sizebuf_t * msg, UserMsg * pUserMsgs);
 void SV_New_f(void);
 void SV_SendRes_f(void);
 void SV_Spawn_f(void);
