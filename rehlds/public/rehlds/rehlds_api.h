@@ -32,6 +32,7 @@
 #include "hookchains.h"
 #include "FlightRecorder.h"
 #include "IMessageManager.h"
+#include "usermsg.h"
 #include "interface.h"
 #include "model.h"
 #include "ObjectList.h"
