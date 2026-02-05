@@ -156,9 +156,6 @@ void System::ExecuteString(const char *commands)
 	if (!commands || !commands[0])
 		return;
 
-	// Remove format characters to block format string attacks
-	COM_RemoveEvilChars(const_cast<char *>(commands));
-
 	bool bInQuote = false;
 
 	char *pszDest;
@@ -174,19 +171,22 @@ void System::ExecuteString(const char *commands)
 		for (i = 0; i < ARRAYSIZE(singleCmd); i++)
 		{
 			const char c = *pszSource;
+			if(!c)
+				break;
+
+			pszSource++;
 
 			if (c == '"')
 			{
 				bInQuote = !bInQuote;
 			}
-			else if ((c == ';' && !bInQuote) || !c)
+			else if (c == ';' && !bInQuote)
 			{
 				// End of command and not in a quoted string
 				break;
 			}
 
 			*pszDest++ = c;
-			pszSource++;
 		}
 
 		if (i >= ARRAYSIZE(singleCmd))
@@ -196,6 +196,9 @@ void System::ExecuteString(const char *commands)
 		}
 
 		*pszDest = '\0';
+
+		// Remove format characters to block format string attacks
+		COM_RemoveEvilChars(singleCmd);
 
 		char *pszCmd = singleCmd;
 		while (*pszCmd == ' ')
@@ -1098,8 +1101,9 @@ unsigned char *System::LoadFile(const char *name, int *length)
 
 #ifdef _WIN32
 
-int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
+int main()
 {
+	auto lpCmdLine = GetCommandLineA();
 #ifdef HLTV_FIXES
 	return CatchAndWriteMiniDump([=]()
 	{

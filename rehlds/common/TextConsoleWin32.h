@@ -52,6 +52,7 @@ public:
 	void SetColor(WORD);
 
 private:
+	const char* GetPipeLine();
 	HANDLE hinput;		// standard input handle
 	HANDLE houtput;		// standard output handle
 	WORD Attrib;		// attrib colours for status bar

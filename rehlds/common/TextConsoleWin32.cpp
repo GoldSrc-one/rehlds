@@ -105,6 +105,34 @@ void CTextConsoleWin32::SetVisible(bool visible)
 	m_ConsoleVisible = visible;
 }
 
+const char* CTextConsoleWin32::GetPipeLine() {
+	DWORD numread = 0;
+	if(!PeekNamedPipe(hinput, m_szConsoleText, ARRAYSIZE(m_szConsoleText) - 1, &numread, NULL, NULL))
+		goto GetPipeLineFailed;
+
+	if(numread == 0)
+		return nullptr;
+
+	m_szConsoleText[numread] = '\0';
+	char* newline = strstr(m_szConsoleText, "\r\n");
+	if(newline)
+		numread = newline - m_szConsoleText + 2;
+
+	if(!ReadFile(hinput, m_szConsoleText, numread, &numread, NULL))
+		goto GetPipeLineFailed;
+
+	if(newline)
+		*newline = '\0';
+
+	return m_szConsoleText;
+
+	GetPipeLineFailed:
+	if(m_System) {
+		m_System->Errorf("CTextConsoleWin32::GetPipeLine: failed to read STDIN as a pipe!\n");
+	}
+	return nullptr;
+}
+
 const char *CTextConsoleWin32::GetLine()
 {
 	while (true)
@@ -114,13 +142,7 @@ const char *CTextConsoleWin32::GetLine()
 		unsigned long numevents;
 
 		if (!GetNumberOfConsoleInputEvents(hinput, &numevents))
-		{
-			if (m_System) {
-				m_System->Errorf("CTextConsoleWin32::GetLine: !GetNumberOfConsoleInputEvents\n");
-			}
-
-			return nullptr;
-		}
+			return GetPipeLine();
 
 		if (numevents <= 0)
 			break;
