@@ -6683,13 +6683,13 @@ int EXT_FUNC SV_RegUserMsg(const char *pszName, int iSize)
 
 	for (UserMsg *pMsg = sv_gpUserMsgs; pMsg; pMsg = pMsg->next)
 	{
-		if (!Q_strcmp(pszName, pMsg->szName))
+		if (iSize == pMsg->iSize && !Q_strcmp(pszName, pMsg->szName))
 			return pMsg->iMsg;
 	}
 
 	for (UserMsg *pMsg = sv_gpNewUserMsgs; pMsg; pMsg = pMsg->next)
 	{
-		if (!Q_strcmp(pszName, pMsg->szName))
+		if (iSize == pMsg->iSize && !Q_strcmp(pszName, pMsg->szName))
 			return pMsg->iMsg;
 	}
 
