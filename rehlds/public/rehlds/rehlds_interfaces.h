@@ -273,6 +273,8 @@ public:
 	virtual struct server_log_s *GetLog() = 0;
 	virtual bool IsSecure() = 0;
 	virtual void SetSecure(bool value) = 0;
+	virtual int GetHunkSize() = 0;
+	virtual byte* GetHunkBase() = 0;
 };
 
 class IRehldsServerData {

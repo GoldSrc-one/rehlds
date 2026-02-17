@@ -617,6 +617,14 @@ int EXT_FUNC CRehldsServerStatic::GetIndexOfClient_t(client_t* client)
 	return int(client - g_psvs.clients);
 }
 
+int EXT_FUNC CRehldsServerStatic::GetHunkSize() {
+	return hunk_size;
+}
+
+byte* EXT_FUNC CRehldsServerStatic::GetHunkBase() {
+	return hunk_base;
+}
+
 
 
 const char* EXT_FUNC CRehldsServerData::GetModelName() {

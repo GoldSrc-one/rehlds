@@ -289,6 +289,8 @@ public:
 	virtual struct server_log_s *GetLog();
 	virtual bool IsSecure();
 	virtual void SetSecure(bool value);
+	virtual int GetHunkSize();
+	virtual byte* GetHunkBase();
 };
 
 class CRehldsServerData : public IRehldsServerData {
