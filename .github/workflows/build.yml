@@ -188,10 +188,9 @@ jobs:
           startsWith(github.ref, 'refs/tags/')
         with:
           files: |
-            *.exe
-            *.dll
-            *.pdb
-            *.so
+            bin/win32/*
+            bin/linux32/*
+            debug/*
 
         env:
           GITHUB_TOKEN: ${{ secrets.API_TOKEN }}
