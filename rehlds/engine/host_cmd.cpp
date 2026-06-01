@@ -3180,6 +3180,19 @@ void Host_ResourcesList_f()
 
 	Con_Printf("--------------\n%d Total %s's\n\n", nCountRes, pszType);
 }
+
+void Host_Ports_f() {
+	int port = (int)iphostport.value;
+	if(!NET_CheckPort(port))
+		port = (int)hostport.value;
+
+	if(num_extra_games) {
+		for(int iGame = 0; iGame < num_extra_games; iGame++)
+			Con_Printf(":%d %s\n", port + iGame, extra_games[iGame]);
+	}
+	else
+		Con_Printf(":%d %s\n", port, com_gamedir);
+}
 #endif
 
 void Host_InitCommands(void)
@@ -3264,6 +3277,8 @@ void Host_InitCommands(void)
 #ifdef REHLDS_FIXES
 	Cmd_AddCommand("rescount", Host_ResourcesCount_f);
 	Cmd_AddCommand("reslist", Host_ResourcesList_f);
+
+	Cmd_AddCommand("ports", Host_Ports_f);
 #endif
 
 	Cvar_RegisterVariable(&gHostMap);
