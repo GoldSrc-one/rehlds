@@ -544,10 +544,32 @@ void SV_LinkEdict(edict_t *ent, qboolean touch_triggers)
 	if (ent->v.solid == SOLID_NOT && ent->v.skin >= -1)
 		return;
 
-	if (ent->v.solid == SOLID_BSP && !Mod_Handle(ent->v.modelindex) && Q_strlen(&pr_strings[ent->v.model]) <= 0)
+	if (ent->v.solid == SOLID_BSP)
 	{
-		Con_DPrintf("Inserted %s with no model\n", &pr_strings[ent->v.classname]);
-		return;
+		auto pModel = Mod_Handle(ent->v.modelindex);
+		if(!pModel && Q_strlen(&pr_strings[ent->v.model]) <= 0) {
+			Con_DPrintf("Inserted %s with no model\n", &pr_strings[ent->v.classname]);
+			return;
+		}
+
+#ifdef REHLDS_FIXES
+		if(pModel) {
+			int missingHulls = 0;
+			for(int iHull = 0; iHull < MAX_MAP_HULLS; iHull++) {
+				auto pHull = &pModel->hulls[iHull];
+				missingHulls |= (pHull->firstclipnode > pHull->lastclipnode) << iHull;
+			}
+			if(missingHulls) {
+				char missingHullsText[4 * MAX_MAP_HULLS] = {};
+				for(int iHull = 0; iHull < MAX_MAP_HULLS; iHull++)
+					if(missingHulls & (1 << iHull))
+						sprintf(missingHullsText + strlen(missingHullsText), "%s%d", missingHullsText[0] ? ", " : "", iHull);
+				
+				Con_DPrintf("Inserted %s with model %s that is missing hulls: %s\n", &pr_strings[ent->v.classname], pModel->name, missingHullsText);
+				return;
+			}
+		}
+#endif
 	}
 
 	// find the first node that the ent's box crosses
