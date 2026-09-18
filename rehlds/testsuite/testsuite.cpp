@@ -137,21 +137,33 @@ void __cdecl SteamAPI_RunCallbacks_hooked()
 	CRehldsPlatformHolder::get()->SteamAPI_RunCallbacks();
 }
 
-bool __cdecl SteamAPI_Init_hooked()
+ESteamAPIInitResult __cdecl SteamInternal_SteamAPI_Init_hooked(const char *pszInternalCheckInterfaceVersions, SteamErrMsg *pOutErrMsg)
 {
-	return CRehldsPlatformHolder::get()->SteamAPI_Init();
+	return CRehldsPlatformHolder::get()->SteamAPI_Init() ? k_ESteamAPIInitResult_OK : k_ESteamAPIInitResult_FailedGeneric;
 }
 
-ISteamUser* __cdecl SteamUser_hooked()
+typedef void *(S_CALLTYPE *SteamInternal_FindOrCreateInterface_t)(HSteamUser hSteamUser, const char *pszVersion);
+static SteamInternal_FindOrCreateInterface_t g_RealFindOrCreateUserInterface = NULL;
+static SteamInternal_FindOrCreateInterface_t g_RealFindOrCreateGameServerInterface = NULL;
+
+void *__cdecl SteamInternal_FindOrCreateUserInterface_hooked(HSteamUser hSteamUser, const char *pszVersion)
 {
-	rehlds_syserror("%s: not implemented", __func__);
-	//return NULL;
+	if (!strncmp(pszVersion, "SteamApps", 9)) {
+		return CRehldsPlatformHolder::get()->SteamApps();
+	}
+	if (!strncmp(pszVersion, "SteamUser", 9) || !strncmp(pszVersion, "SteamFriends", 12) || !strncmp(pszVersion, "SteamHTTP", 9)) {
+		rehlds_syserror("%s: not implemented", __func__);
+		//return NULL;
+	}
+	return g_RealFindOrCreateUserInterface(hSteamUser, pszVersion);
 }
 
-ISteamFriends* __cdecl SteamFriends_hooked()
+void *__cdecl SteamInternal_FindOrCreateGameServerInterface_hooked(HSteamUser hSteamUser, const char *pszVersion)
 {
-	rehlds_syserror("%s: not implemented", __func__);
-	//return NULL;
+	if (!strncmp(pszVersion, "SteamGameServer0", 16)) {
+		return CRehldsPlatformHolder::get()->SteamGameServer();
+	}
+	return g_RealFindOrCreateGameServerInterface(hSteamUser, pszVersion);
 }
 
 void __cdecl SteamGameServer_RunCallbacks_hooked()
@@ -169,19 +181,14 @@ void __cdecl SteamGameServer_Shutdown_hooked()
 	CRehldsPlatformHolder::get()->SteamGameServer_Shutdown();
 }
 
-bool __cdecl SteamGameServer_Init_hooked(uint32 unIP, uint16 usSteamPort, uint16 usGamePort, uint16 usQueryPort, EServerMode eServerMode, const char *pchVersionString)
+ESteamAPIInitResult __cdecl SteamInternal_GameServer_Init_V2_hooked(uint32 unIP, uint16 usGamePort, uint16 usQueryPort, EServerMode eServerMode, const char *pchVersionString, const char *pszInternalCheckInterfaceVersions, SteamErrMsg *pOutErrMsg)
 {
-	return CRehldsPlatformHolder::get()->SteamGameServer_Init(unIP, usSteamPort, usGamePort, usQueryPort, eServerMode, pchVersionString);
+	return CRehldsPlatformHolder::get()->SteamGameServer_Init(unIP, 0, usGamePort, usQueryPort, eServerMode, pchVersionString) ? k_ESteamAPIInitResult_OK : k_ESteamAPIInitResult_FailedGeneric;
 }
 
 void __cdecl SteamAPI_UnregisterCallback_hooked(class CCallbackBase *pCallback)
 {
 	CRehldsPlatformHolder::get()->SteamAPI_UnregisterCallback(pCallback);
-}
-
-ISteamGameServer* __cdecl SteamGameServer_hooked()
-{
-	return CRehldsPlatformHolder::get()->SteamGameServer();
 }
 
 void __cdecl SteamAPI_SetBreakpadAppID_hooked(uint32 unAppID)
@@ -194,20 +201,9 @@ void __cdecl SteamAPI_RegisterCallResult_hooked(class CCallbackBase *pCallback, 
 	rehlds_syserror("%s: not implemented", __func__);
 }
 
-ISteamHTTP* __cdecl SteamHTTP_hooked()
-{
-	rehlds_syserror("%s: not implemented", __func__);
-	//return NULL;
-}
-
 void __cdecl SteamAPI_UnregisterCallResult_hooked(class CCallbackBase *pCallback, SteamAPICall_t hAPICall)
 {
 	CRehldsPlatformHolder::get()->SteamAPI_UnregisterCallResult(pCallback, hAPICall);
-}
-
-ISteamApps* __cdecl SteamApps_hooked()
-{
-	return CRehldsPlatformHolder::get()->SteamApps();
 }
 
 void __cdecl SteamAPI_UseBreakpadCrashHandler_hooked(char const *pchVersion, char const *pchDate, char const *pchTime, bool bFullMemoryDumps, void *pvContext, PFNPreMinidumpCallback m_pfnPreMinidumpCallback)
@@ -273,20 +269,17 @@ void TestSuite_InstallHooks(const Module* engine) {
 	void* SteamAPI_WriteMiniDump_addr = getProcAddressOrDie(hSteamApi, "SteamAPI_WriteMiniDump");
 	void* SteamAPI_RegisterCallback_addr = getProcAddressOrDie(hSteamApi, "SteamAPI_RegisterCallback");
 	void* SteamAPI_RunCallbacks_addr = getProcAddressOrDie(hSteamApi, "SteamAPI_RunCallbacks");
-	void* SteamAPI_Init_addr = getProcAddressOrDie(hSteamApi, "SteamAPI_Init");
-	void* SteamUser_addr = getProcAddressOrDie(hSteamApi, "SteamUser");
-	void* SteamFriends_addr = getProcAddressOrDie(hSteamApi, "SteamFriends");
+	void* SteamInternal_SteamAPI_Init_addr = getProcAddressOrDie(hSteamApi, "SteamInternal_SteamAPI_Init");
+	g_RealFindOrCreateUserInterface = (SteamInternal_FindOrCreateInterface_t)getProcAddressOrDie(hSteamApi, "SteamInternal_FindOrCreateUserInterface");
+	g_RealFindOrCreateGameServerInterface = (SteamInternal_FindOrCreateInterface_t)getProcAddressOrDie(hSteamApi, "SteamInternal_FindOrCreateGameServerInterface");
 	void* SteamGameServer_RunCallbacks_addr = getProcAddressOrDie(hSteamApi, "SteamGameServer_RunCallbacks");
 	void* SteamAPI_Shutdown_addr = getProcAddressOrDie(hSteamApi, "SteamAPI_Shutdown");
 	void* SteamGameServer_Shutdown_addr = getProcAddressOrDie(hSteamApi, "SteamGameServer_Shutdown");
-	void* SteamGameServer_Init_addr = getProcAddressOrDie(hSteamApi, "SteamGameServer_Init");
+	void* SteamInternal_GameServer_Init_V2_addr = getProcAddressOrDie(hSteamApi, "SteamInternal_GameServer_Init_V2");
 	void* SteamAPI_UnregisterCallback_addr = getProcAddressOrDie(hSteamApi, "SteamAPI_UnregisterCallback");
-	void* SteamGameServer_addr = getProcAddressOrDie(hSteamApi, "SteamGameServer");
 	void* SteamAPI_SetBreakpadAppID_addr = getProcAddressOrDie(hSteamApi, "SteamAPI_SetBreakpadAppID");
 	void* SteamAPI_RegisterCallResult_addr = getProcAddressOrDie(hSteamApi, "SteamAPI_RegisterCallResult");
-	void* SteamHTTP_addr = getProcAddressOrDie(hSteamApi, "SteamHTTP");
 	void* SteamAPI_UnregisterCallResult_addr = getProcAddressOrDie(hSteamApi, "SteamAPI_UnregisterCallResult");
-	void* SteamApps_addr = getProcAddressOrDie(hSteamApi, "SteamApps");
 	void* SteamAPI_UseBreakpadCrashHandler_addr = getProcAddressOrDie(hSteamApi, "SteamAPI_UseBreakpadCrashHandler");
 
 	
@@ -391,17 +384,17 @@ void TestSuite_InstallHooks(const Module* engine) {
 				{
 					InstallImportTableHook(thunk, &SteamAPI_RunCallbacks_hooked);
 				}
-				else if (fptr == SteamAPI_Init_addr)
+				else if (fptr == SteamInternal_SteamAPI_Init_addr)
 				{
-					InstallImportTableHook(thunk, &SteamAPI_Init_hooked);
+					InstallImportTableHook(thunk, &SteamInternal_SteamAPI_Init_hooked);
 				}
-				else if (fptr == SteamUser_addr)
+				else if (fptr == g_RealFindOrCreateUserInterface)
 				{
-					InstallImportTableHook(thunk, &SteamUser_hooked);
+					InstallImportTableHook(thunk, &SteamInternal_FindOrCreateUserInterface_hooked);
 				}
-				else if (fptr == SteamFriends_addr)
+				else if (fptr == g_RealFindOrCreateGameServerInterface)
 				{
-					InstallImportTableHook(thunk, &SteamFriends_hooked);
+					InstallImportTableHook(thunk, &SteamInternal_FindOrCreateGameServerInterface_hooked);
 				}
 				else if (fptr == SteamGameServer_RunCallbacks_addr)
 				{
@@ -415,17 +408,13 @@ void TestSuite_InstallHooks(const Module* engine) {
 				{
 					InstallImportTableHook(thunk, &SteamGameServer_Shutdown_hooked);
 				}
-				else if (fptr == SteamGameServer_Init_addr)
+				else if (fptr == SteamInternal_GameServer_Init_V2_addr)
 				{
-					InstallImportTableHook(thunk, &SteamGameServer_Init_hooked);
+					InstallImportTableHook(thunk, &SteamInternal_GameServer_Init_V2_hooked);
 				}
 				else if (fptr == SteamAPI_UnregisterCallback_addr)
 				{
 					InstallImportTableHook(thunk, &SteamAPI_UnregisterCallback_hooked);
-				}
-				else if (fptr == SteamGameServer_addr)
-				{
-					InstallImportTableHook(thunk, &SteamGameServer_hooked);
 				}
 				else if (fptr == SteamAPI_SetBreakpadAppID_addr)
 				{
@@ -435,17 +424,9 @@ void TestSuite_InstallHooks(const Module* engine) {
 				{
 					InstallImportTableHook(thunk, &SteamAPI_RegisterCallResult_hooked);
 				}
-				else if (fptr == SteamHTTP_addr)
-				{
-					InstallImportTableHook(thunk, &SteamHTTP_hooked);
-				}
 				else if (fptr == SteamAPI_UnregisterCallResult_addr)
 				{
 					InstallImportTableHook(thunk, &SteamAPI_UnregisterCallResult_hooked);
-				}
-				else if (fptr == SteamApps_addr)
-				{
-					InstallImportTableHook(thunk, &SteamApps_hooked);
 				}
 				else if (fptr == SteamAPI_UseBreakpadCrashHandler_addr)
 				{

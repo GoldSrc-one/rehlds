@@ -52,9 +52,26 @@ public:
 
 	virtual bool GetCurrentBetaName(char *pchName, int cchNameBufferSize);
 	virtual bool MarkContentCorrupt(bool bMissingFilesOnly);
-	virtual uint32 GetInstalledDepots(DepotId_t *pvecDepots, uint32 cMaxDepots);
+	virtual uint32 GetInstalledDepots(AppId_t appID, DepotId_t *pvecDepots, uint32 cMaxDepots);
 
 	virtual uint32 GetAppInstallDir(AppId_t appID, char *pchFolder, uint32 cchFolderBufferSize);
+
+	virtual bool BIsAppInstalled(AppId_t appID);
+	virtual CSteamID GetAppOwner();
+	virtual const char *GetLaunchQueryParam(const char *pchKey);
+	virtual bool GetDlcDownloadProgress(AppId_t nAppID, uint64 *punBytesDownloaded, uint64 *punBytesTotal);
+	virtual int GetAppBuildId();
+	virtual void RequestAllProofOfPurchaseKeys();
+	virtual SteamAPICall_t GetFileDetails(const char* pszFileName);
+	virtual int GetLaunchCommandLine(char *pszCommandLine, int cubCommandLine);
+	virtual bool BIsSubscribedFromFamilySharing();
+	virtual bool BIsTimedTrial(uint32* punSecondsAllowed, uint32* punSecondsPlayed);
+	virtual bool SetDlcContext(AppId_t nAppID);
+	virtual int GetNumBetas(int *pnAvailable, int *pnPrivate);
+	virtual bool GetBetaInfo(int iBetaIndex, uint32 *punFlags, uint32 *punBuildID, char *pchBetaName, int cchBetaName, char *pchDescription, int cchDescription, uint32 *punLastUpdated);
+	virtual bool SetActiveBeta(const char *pchBetaName);
+	virtual void SetGamePerformanceSetting(EGamePerformanceSetting setting);
+	virtual void SetGameRenderResolution(uint32 unWidth, uint32 unHeight);
 };
 
 class CSteamGameServerRecordingWrapper : public ISteamGameServer
@@ -71,7 +88,7 @@ public:
 	virtual void SetGameDescription(const char *pszGameDescription);
 	virtual void SetModDir(const char *pszModDir);
 	virtual void SetDedicatedServer(bool bDedicated);
-	virtual void LogOn(const char *pszAccountName, const char *pszPassword);
+	virtual void LogOn(const char *pszToken);
 	virtual void LogOnAnonymous();
 	virtual void LogOff();
 	virtual bool BLoggedOn();
@@ -90,11 +107,11 @@ public:
 	virtual void SetGameTags(const char *pchGameTags);
 	virtual void SetGameData(const char *pchGameData);
 	virtual void SetRegion(const char *pszRegion);
-	virtual bool SendUserConnectAndAuthenticate(uint32 unIPClient, const void *pvAuthBlob, uint32 cubAuthBlobSize, CSteamID *pSteamIDUser);
+	virtual bool SendUserConnectAndAuthenticate_DEPRECATED(uint32 unIPClient, const void *pvAuthBlob, uint32 cubAuthBlobSize, CSteamID *pSteamIDUser);
 	virtual CSteamID CreateUnauthenticatedUserConnection();
-	virtual void SendUserDisconnect(CSteamID steamIDUser);
+	virtual void SendUserDisconnect_DEPRECATED(CSteamID steamIDUser);
 	virtual bool BUpdateUserData(CSteamID steamIDUser, const char *pchPlayerName, uint32 uScore);
-	virtual HAuthTicket GetAuthSessionTicket(void *pTicket, int cbMaxTicket, uint32 *pcbTicket);
+	virtual HAuthTicket GetAuthSessionTicket(void *pTicket, int cbMaxTicket, uint32 *pcbTicket, const SteamNetworkingIdentity *pSnid);
 	virtual EBeginAuthSessionResult BeginAuthSession(const void *pAuthTicket, int cbAuthTicket, CSteamID steamID);
 	virtual void EndAuthSession(CSteamID steamID);
 	virtual void CancelAuthTicket(HAuthTicket hAuthTicket);
@@ -102,12 +119,12 @@ public:
 	virtual bool RequestUserGroupStatus(CSteamID steamIDUser, CSteamID steamIDGroup);
 	virtual void GetGameplayStats();
 	virtual SteamAPICall_t GetServerReputation();
-	virtual uint32 GetPublicIP();
+	virtual SteamIPAddress_t GetPublicIP();
 	virtual bool HandleIncomingPacket(const void *pData, int cbData, uint32 srcIP, uint16 srcPort);
 	virtual int GetNextOutgoingPacket(void *pOut, int cbMaxOut, uint32 *pNetAdr, uint16 *pPort);
-	virtual void EnableHeartbeats(bool bActive);
-	virtual void SetHeartbeatInterval(int iHeartbeatInterval);
-	virtual void ForceHeartbeat();
+	virtual void SetAdvertiseServerActive(bool bActive);
+	virtual void SetMasterServerHeartbeatInterval_DEPRECATED(int iHeartbeatInterval);
+	virtual void ForceMasterServerHeartbeat_DEPRECATED();
 	virtual SteamAPICall_t AssociateWithClan(CSteamID steamIDClan);
 	virtual SteamAPICall_t ComputeNewPlayerCompatibility(CSteamID steamIDNewPlayer);
 };

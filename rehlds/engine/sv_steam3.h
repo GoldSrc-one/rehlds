@@ -34,6 +34,7 @@
 #include "public/steam/steam_api.h"
 #include "public/steam/steam_gameserver.h"
 #include "public/steam/steamclientpublic.h"
+#include "public/steam/steamnetworkingfakeip.h"
 #include "server.h"
 
 class CSteamID;
@@ -167,3 +168,13 @@ CSteam3Server *Steam3Server();
 CSteam3Client *Steam3Client();
 void Master_SetMaster_f();
 void Steam_HandleIncomingPacket(byte *data, int len, int fromip, uint16 port);
+
+//Steam Datagram Relay (FakeIP/FakeUDPPort) transport, backported from 25th anniversary HLDS.
+extern uint32 g_FakeIP[NS_MAX];
+qboolean NET_ShouldUseSteamFakeIP();
+int NET_SteamFakeIPSendTo(netsrc_t sock, const char *buf, int len, const struct sockaddr *to); // -2: not a FakeIP peer
+int NET_SteamFakeIPRecvFrom(netsrc_t sock, unsigned char *buf, int maxlen, netadr_t *from);
+void NET_SteamFakeIPDestroySocket(netsrc_t sock);
+void NET_CheckCleanupFakeIPConnection(netsrc_t sock, const netadr_t *adr);
+void NET_UpdateSteamFakeIP();
+void Net_CheckOpenFakeUDPPorts();

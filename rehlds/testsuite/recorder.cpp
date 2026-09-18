@@ -162,7 +162,7 @@ bool CSteamAppsRecordingWrapper::MarkContentCorrupt(bool bMissingFilesOnly)
 	return false;
 }
 
-uint32 CSteamAppsRecordingWrapper::GetInstalledDepots(DepotId_t *pvecDepots, uint32 cMaxDepots)
+uint32 CSteamAppsRecordingWrapper::GetInstalledDepots(AppId_t appID, DepotId_t *pvecDepots, uint32 cMaxDepots)
 {
 	rehlds_syserror("%s: not implemented", __func__);
 	return 0;
@@ -173,6 +173,100 @@ uint32 CSteamAppsRecordingWrapper::GetAppInstallDir(AppId_t appID, char *pchFold
 	rehlds_syserror("%s: not implemented", __func__);
 	return 0;
 }
+
+bool CSteamAppsRecordingWrapper::BIsAppInstalled(AppId_t appID)
+{
+	rehlds_syserror("%s: not implemented", __func__);
+	//return false;
+}
+
+CSteamID CSteamAppsRecordingWrapper::GetAppOwner()
+{
+	rehlds_syserror("%s: not implemented", __func__);
+	//return k_steamIDNil;
+}
+
+const char *CSteamAppsRecordingWrapper::GetLaunchQueryParam(const char *pchKey)
+{
+	rehlds_syserror("%s: not implemented", __func__);
+	//return NULL;
+}
+
+bool CSteamAppsRecordingWrapper::GetDlcDownloadProgress(AppId_t nAppID, uint64 *punBytesDownloaded, uint64 *punBytesTotal)
+{
+	rehlds_syserror("%s: not implemented", __func__);
+	//return false;
+}
+
+int CSteamAppsRecordingWrapper::GetAppBuildId()
+{
+	rehlds_syserror("%s: not implemented", __func__);
+	//return 0;
+}
+
+void CSteamAppsRecordingWrapper::RequestAllProofOfPurchaseKeys()
+{
+	rehlds_syserror("%s: not implemented", __func__);
+}
+
+SteamAPICall_t CSteamAppsRecordingWrapper::GetFileDetails(const char* pszFileName)
+{
+	rehlds_syserror("%s: not implemented", __func__);
+	//return k_uAPICallInvalid;
+}
+
+int CSteamAppsRecordingWrapper::GetLaunchCommandLine(char *pszCommandLine, int cubCommandLine)
+{
+	rehlds_syserror("%s: not implemented", __func__);
+	//return 0;
+}
+
+bool CSteamAppsRecordingWrapper::BIsSubscribedFromFamilySharing()
+{
+	rehlds_syserror("%s: not implemented", __func__);
+	//return false;
+}
+
+bool CSteamAppsRecordingWrapper::BIsTimedTrial(uint32* punSecondsAllowed, uint32* punSecondsPlayed)
+{
+	rehlds_syserror("%s: not implemented", __func__);
+	//return false;
+}
+
+bool CSteamAppsRecordingWrapper::SetDlcContext(AppId_t nAppID)
+{
+	rehlds_syserror("%s: not implemented", __func__);
+	//return false;
+}
+
+int CSteamAppsRecordingWrapper::GetNumBetas(int *pnAvailable, int *pnPrivate)
+{
+	rehlds_syserror("%s: not implemented", __func__);
+	//return 0;
+}
+
+bool CSteamAppsRecordingWrapper::GetBetaInfo(int iBetaIndex, uint32 *punFlags, uint32 *punBuildID, char *pchBetaName, int cchBetaName, char *pchDescription, int cchDescription, uint32 *punLastUpdated)
+{
+	rehlds_syserror("%s: not implemented", __func__);
+	//return false;
+}
+
+bool CSteamAppsRecordingWrapper::SetActiveBeta(const char *pchBetaName)
+{
+	rehlds_syserror("%s: not implemented", __func__);
+	//return false;
+}
+
+void CSteamAppsRecordingWrapper::SetGamePerformanceSetting(EGamePerformanceSetting setting)
+{
+	rehlds_syserror("%s: not implemented", __func__);
+}
+
+void CSteamAppsRecordingWrapper::SetGameRenderResolution(uint32 unWidth, uint32 unHeight)
+{
+	rehlds_syserror("%s: not implemented", __func__);
+}
+
 
 
 CSteamGameServerRecordingWrapper::CSteamGameServerRecordingWrapper(ISteamGameServer* original, CRecordingEngExtInterceptor* recorder)
@@ -219,7 +313,7 @@ void CSteamGameServerRecordingWrapper::SetDedicatedServer(bool bDedicated)
 	m_Recorder->PopFunc(&frec);
 }
 
-void CSteamGameServerRecordingWrapper::LogOn(const char *pszAccountName, const char *pszPassword)
+void CSteamGameServerRecordingWrapper::LogOn(const char *pszToken)
 {
 	rehlds_syserror("%s: not implemented", __func__);
 }
@@ -361,11 +455,11 @@ void CSteamGameServerRecordingWrapper::SetRegion(const char *pszRegion)
 	rehlds_syserror("%s: not implemented", __func__);
 }
 
-bool CSteamGameServerRecordingWrapper::SendUserConnectAndAuthenticate(uint32 unIPClient, const void *pvAuthBlob, uint32 cubAuthBlobSize, CSteamID *pSteamIDUser)
+bool CSteamGameServerRecordingWrapper::SendUserConnectAndAuthenticate_DEPRECATED(uint32 unIPClient, const void *pvAuthBlob, uint32 cubAuthBlobSize, CSteamID *pSteamIDUser)
 {
 	CGameServerSendUserConnectAndAuthenticateCall fcall(unIPClient, pvAuthBlob, cubAuthBlobSize); CRecorderFuncCall frec(&fcall);
 	m_Recorder->PushFunc(&frec);
-	bool res = m_Wrapped->SendUserConnectAndAuthenticate(unIPClient, pvAuthBlob, cubAuthBlobSize, pSteamIDUser);
+	bool res = m_Wrapped->SendUserConnectAndAuthenticate_DEPRECATED(unIPClient, pvAuthBlob, cubAuthBlobSize, pSteamIDUser);
 	fcall.setResult(*pSteamIDUser, res);
 	m_Recorder->PopFunc(&frec);
 	return res;
@@ -381,11 +475,11 @@ CSteamID CSteamGameServerRecordingWrapper::CreateUnauthenticatedUserConnection()
 	return res;
 }
 
-void CSteamGameServerRecordingWrapper::SendUserDisconnect(CSteamID steamIDUser)
+void CSteamGameServerRecordingWrapper::SendUserDisconnect_DEPRECATED(CSteamID steamIDUser)
 {
 	CGameServerSendUserDisconnectCall fcall(steamIDUser); CRecorderFuncCall frec(&fcall);
 	m_Recorder->PushFunc(&frec);
-	m_Wrapped->SendUserDisconnect(steamIDUser);
+	m_Wrapped->SendUserDisconnect_DEPRECATED(steamIDUser);
 	m_Recorder->PopFunc(&frec);
 }
 
@@ -399,7 +493,7 @@ bool CSteamGameServerRecordingWrapper::BUpdateUserData(CSteamID steamIDUser, con
 	return res;
 }
 
-HAuthTicket CSteamGameServerRecordingWrapper::GetAuthSessionTicket(void *pTicket, int cbMaxTicket, uint32 *pcbTicket)
+HAuthTicket CSteamGameServerRecordingWrapper::GetAuthSessionTicket(void *pTicket, int cbMaxTicket, uint32 *pcbTicket, const SteamNetworkingIdentity *pSnid)
 {
 	rehlds_syserror("%s: not implemented", __func__);
 	return k_HAuthTicketInvalid;
@@ -444,10 +538,10 @@ SteamAPICall_t CSteamGameServerRecordingWrapper::GetServerReputation()
 	return k_uAPICallInvalid;
 }
 
-uint32 CSteamGameServerRecordingWrapper::GetPublicIP()
+SteamIPAddress_t CSteamGameServerRecordingWrapper::GetPublicIP()
 {
 	rehlds_syserror("%s: not implemented", __func__);
-	return 0;
+	return SteamIPAddress_t();
 }
 
 bool CSteamGameServerRecordingWrapper::HandleIncomingPacket(const void *pData, int cbData, uint32 srcIP, uint16 srcPort)
@@ -470,23 +564,20 @@ int CSteamGameServerRecordingWrapper::GetNextOutgoingPacket(void *pOut, int cbMa
 	return res;
 }
 
-void CSteamGameServerRecordingWrapper::EnableHeartbeats(bool bActive)
+void CSteamGameServerRecordingWrapper::SetAdvertiseServerActive(bool bActive)
 {
 	CGameServerEnableHeartbeatsCall fcall(bActive); CRecorderFuncCall frec(&fcall);
 	m_Recorder->PushFunc(&frec);
-	m_Wrapped->EnableHeartbeats(bActive);
+	m_Wrapped->SetAdvertiseServerActive(bActive);
 	m_Recorder->PopFunc(&frec);
 }
 
-void CSteamGameServerRecordingWrapper::SetHeartbeatInterval(int iHeartbeatInterval)
+void CSteamGameServerRecordingWrapper::SetMasterServerHeartbeatInterval_DEPRECATED(int iHeartbeatInterval)
 {
-	CGameServerSetHeartbeatIntervalCall fcall(iHeartbeatInterval); CRecorderFuncCall frec(&fcall);
-	m_Recorder->PushFunc(&frec);
-	m_Wrapped->SetHeartbeatInterval(iHeartbeatInterval);
-	m_Recorder->PopFunc(&frec);
+	rehlds_syserror("%s: not implemented", __func__);
 }
 
-void CSteamGameServerRecordingWrapper::ForceHeartbeat()
+void CSteamGameServerRecordingWrapper::ForceMasterServerHeartbeat_DEPRECATED()
 {
 	rehlds_syserror("%s: not implemented", __func__);
 }

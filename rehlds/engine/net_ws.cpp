@@ -53,14 +53,6 @@ unsigned char in_message_buf[NET_MAX_PAYLOAD];
 sizebuf_t in_message;
 netadr_t in_from;
 
-#ifdef REHLDS_FIXES
-// Define default to INVALID_SOCKET
-#define INV_SOCK INVALID_SOCKET
-#else
-// Original engine behavior
-#define INV_SOCK 0
-#endif
-
 SOCKET ip_sockets[NS_MAX] = { INV_SOCK, INV_SOCK, INV_SOCK };
 
 #ifdef _WIN32
@@ -747,16 +739,19 @@ qboolean NET_LagPacket(qboolean newdata, netsrc_t sock, netadr_t *from, sizebuf_
 void NET_FlushSocket(netsrc_t sock)
 {
 	SOCKET net_socket = ip_sockets[sock];
+	unsigned char buf[MAX_UDP_PACKET];
 	if (net_socket != INV_SOCK)
 	{
 		struct sockaddr from;
 		socklen_t fromlen;
-		unsigned char buf[MAX_UDP_PACKET];
 
 		fromlen = 16;
 		while (CRehldsPlatformHolder::get()->recvfrom(net_socket, (char*)buf, sizeof buf, 0, &from, &fromlen) > 0)
 			;
 	}
+
+	while (NET_SteamFakeIPRecvFrom(sock, buf, sizeof(buf), NULL) > 0)
+		;
 }
 
 qboolean NET_GetLong(unsigned char *pData, int size, int *outSize)
@@ -924,6 +919,9 @@ qboolean NET_QueuePacket(netsrc_t sock)
 
 			Con_NetPrintf("%s: Oversize packet from %s\n", __func__, NET_AdrToString(in_from));
 		}
+
+		if (ret == -1)
+			ret = NET_SteamFakeIPRecvFrom(sock, buf, sizeof(buf), &in_from);
 
 #ifdef REHLDS_FIXES
 		if (ret == -1)
@@ -1313,6 +1311,14 @@ void NET_FlushQueues()
 	normalqueue = NULL;
 }
 
+static int NET_SendTo(netsrc_t sock, SOCKET s, const char *buf, int len, int flags, const struct sockaddr *to, int tolen)
+{
+	int ret = NET_SteamFakeIPSendTo(sock, buf, len, to);
+	if (ret != -2)
+		return ret;
+	return CRehldsPlatformHolder::get()->sendto(s, buf, len, flags, to, tolen);
+}
+
 int NET_SendLong(netsrc_t sock, SOCKET s, const char *buf, int len, int flags, const struct sockaddr *to, int tolen)
 {
 	static long gSequenceNumber = 1;
@@ -1358,7 +1364,7 @@ int NET_SendLong(netsrc_t sock, SOCKET s, const char *buf, int len, int flags, c
 					NET_AdrToString(adr));
 			}
 
-			int ret = CRehldsPlatformHolder::get()->sendto(s, packet, size + sizeof(SPLITPACKET), flags, to, tolen);
+			int ret = NET_SendTo(sock, s, packet, size + sizeof(SPLITPACKET), flags, to, tolen);
 			if (ret < 0)
 			{
 				return ret;
@@ -1376,7 +1382,7 @@ int NET_SendLong(netsrc_t sock, SOCKET s, const char *buf, int len, int flags, c
 		return totalSent;
 	}
 
-	int nSend = CRehldsPlatformHolder::get()->sendto(s, buf, len, flags, to, tolen);
+	int nSend = NET_SendTo(sock, s, buf, len, flags, to, tolen);
 	return nSend;
 }
 
@@ -1667,6 +1673,8 @@ void NET_OpenIP()
 		bFirst = FALSE;
 		Con_Printf("NET Ports:  server %i, client %i\n", sv_port, cl_port);
 	}
+
+	Net_CheckOpenFakeUDPPorts();
 }
 
 #ifdef _WIN32
@@ -1791,6 +1799,10 @@ void NET_GetLocalAddress()
 	if (noip)
 	{
 		Con_DPrintf("TCP/IP Disabled.\n");
+	}
+	else if (NET_ShouldUseSteamFakeIP())
+	{
+		NET_UpdateSteamFakeIP();
 	}
 	else
 	{
@@ -1933,6 +1945,8 @@ void NET_Config(qboolean multiplayer)
 #endif //_WIN32
 				ip_sockets[sock] = INV_SOCK;
 			}
+
+			NET_SteamFakeIPDestroySocket((netsrc_t)sock);
 
 #ifdef _WIN32
 			if (ipx_sockets[sock] != INV_SOCK)

@@ -210,7 +210,6 @@ set(COMMON_SRCS
 set(PUBLIC_SRCS
 	"public/tier0/dbg.cpp"
 	"public/registry.cpp"
-	"public/steamid.cpp"
 	"public/utlbuffer.cpp"
 )
 

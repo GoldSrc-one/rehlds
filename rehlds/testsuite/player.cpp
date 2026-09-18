@@ -723,7 +723,7 @@ void CSteamGameServerPlayingWrapper::SetDedicatedServer(bool bDedicated) {
 	m_Player->freeFuncCall(playCall); m_Player->freeFuncCall(playEndCall);
 }
 
-void CSteamGameServerPlayingWrapper::LogOn(const char *pszAccountName, const char *pszPassword) {
+void CSteamGameServerPlayingWrapper::LogOn(const char *pszToken) {
 	rehlds_syserror("%s: not implemented", __func__);
 }
 
@@ -856,7 +856,7 @@ void CSteamGameServerPlayingWrapper::SetRegion(const char *pszRegion) {
 	rehlds_syserror("%s: not implemented", __func__);
 }
 
-bool CSteamGameServerPlayingWrapper::SendUserConnectAndAuthenticate(uint32 unIPClient, const void *pvAuthBlob, uint32 cubAuthBlobSize, CSteamID *pSteamIDUser) {
+bool CSteamGameServerPlayingWrapper::SendUserConnectAndAuthenticate_DEPRECATED(uint32 unIPClient, const void *pvAuthBlob, uint32 cubAuthBlobSize, CSteamID *pSteamIDUser) {
 	CGameServerSendUserConnectAndAuthenticateCall* playCall = dynamic_cast<CGameServerSendUserConnectAndAuthenticateCall*>(m_Player->getNextCall(false, false, ECF_GS_SEND_USER_CONNECT_AND_AUTHENTICATE, true, __func__));
 	CGameServerSendUserConnectAndAuthenticateCall(unIPClient, pvAuthBlob, cubAuthBlobSize).ensureArgsAreEqual(playCall, m_bStrictChecks, __func__);
 	CGameServerSendUserConnectAndAuthenticateCall* playEndCall = dynamic_cast<CGameServerSendUserConnectAndAuthenticateCall*>(m_Player->getNextCall(false, true, ECF_GS_SEND_USER_CONNECT_AND_AUTHENTICATE, false, __func__));
@@ -878,7 +878,7 @@ CSteamID CSteamGameServerPlayingWrapper::CreateUnauthenticatedUserConnection() {
 	return res;
 }
 
-void CSteamGameServerPlayingWrapper::SendUserDisconnect(CSteamID steamIDUser) {
+void CSteamGameServerPlayingWrapper::SendUserDisconnect_DEPRECATED(CSteamID steamIDUser) {
 	CGameServerSendUserDisconnectCall* playCall = dynamic_cast<CGameServerSendUserDisconnectCall*>(m_Player->getNextCall(false, false, ECF_GS_SEND_USER_DISCONNECT, true, __func__));
 	CGameServerSendUserDisconnectCall(steamIDUser).ensureArgsAreEqual(playCall, m_bStrictChecks, __func__);
 	CGameServerSendUserDisconnectCall* playEndCall = dynamic_cast<CGameServerSendUserDisconnectCall*>(m_Player->getNextCall(false, true, ECF_GS_SEND_USER_DISCONNECT, false, __func__));
@@ -897,7 +897,7 @@ bool CSteamGameServerPlayingWrapper::BUpdateUserData(CSteamID steamIDUser, const
 	return res;
 }
 
-HAuthTicket CSteamGameServerPlayingWrapper::GetAuthSessionTicket(void *pTicket, int cbMaxTicket, uint32 *pcbTicket) {
+HAuthTicket CSteamGameServerPlayingWrapper::GetAuthSessionTicket(void *pTicket, int cbMaxTicket, uint32 *pcbTicket, const SteamNetworkingIdentity *pSnid) {
 	rehlds_syserror("%s: not implemented", __func__);
 	//return k_HAuthTicketInvalid;
 }
@@ -934,7 +934,7 @@ SteamAPICall_t CSteamGameServerPlayingWrapper::GetServerReputation() {
 	//return k_uAPICallInvalid;
 }
 
-uint32 CSteamGameServerPlayingWrapper::GetPublicIP() {
+SteamIPAddress_t CSteamGameServerPlayingWrapper::GetPublicIP() {
 	rehlds_syserror("%s: not implemented", __func__);
 	//return 0;
 }
@@ -964,7 +964,7 @@ int CSteamGameServerPlayingWrapper::GetNextOutgoingPacket(void *pOut, int cbMaxO
 	return res;
 }
 
-void CSteamGameServerPlayingWrapper::EnableHeartbeats(bool bActive) {
+void CSteamGameServerPlayingWrapper::SetAdvertiseServerActive(bool bActive) {
 	CGameServerEnableHeartbeatsCall* playCall = dynamic_cast<CGameServerEnableHeartbeatsCall*>(m_Player->getNextCall(false, false, ECF_GS_ENABLE_HEARTBEATS, true, __func__));
 	CGameServerEnableHeartbeatsCall(bActive).ensureArgsAreEqual(playCall, m_bStrictChecks, __func__);
 	CGameServerEnableHeartbeatsCall* playEndCall = dynamic_cast<CGameServerEnableHeartbeatsCall*>(m_Player->getNextCall(false, true, ECF_GS_ENABLE_HEARTBEATS, false, __func__));
@@ -972,7 +972,7 @@ void CSteamGameServerPlayingWrapper::EnableHeartbeats(bool bActive) {
 	m_Player->freeFuncCall(playCall); m_Player->freeFuncCall(playEndCall);
 }
 
-void CSteamGameServerPlayingWrapper::SetHeartbeatInterval(int iHeartbeatInterval) {
+void CSteamGameServerPlayingWrapper::SetMasterServerHeartbeatInterval_DEPRECATED(int iHeartbeatInterval) {
 	CGameServerSetHeartbeatIntervalCall* playCall = dynamic_cast<CGameServerSetHeartbeatIntervalCall*>(m_Player->getNextCall(false, false, ECF_GS_SET_HEARTBEATS_INTERVAL, true, __func__));
 	CGameServerSetHeartbeatIntervalCall(iHeartbeatInterval).ensureArgsAreEqual(playCall, m_bStrictChecks, __func__);
 	CGameServerSetHeartbeatIntervalCall* playEndCall = dynamic_cast<CGameServerSetHeartbeatIntervalCall*>(m_Player->getNextCall(false, true, ECF_GS_SET_HEARTBEATS_INTERVAL, false, __func__));
@@ -980,7 +980,7 @@ void CSteamGameServerPlayingWrapper::SetHeartbeatInterval(int iHeartbeatInterval
 	m_Player->freeFuncCall(playCall); m_Player->freeFuncCall(playEndCall);
 }
 
-void CSteamGameServerPlayingWrapper::ForceHeartbeat() {
+void CSteamGameServerPlayingWrapper::ForceMasterServerHeartbeat_DEPRECATED() {
 	rehlds_syserror("%s: not implemented", __func__);
 }
 
@@ -1087,7 +1087,7 @@ bool CSteamAppsPlayingWrapper::MarkContentCorrupt(bool bMissingFilesOnly) {
 	//return false;
 }
 
-uint32 CSteamAppsPlayingWrapper::GetInstalledDepots(DepotId_t *pvecDepots, uint32 cMaxDepots) {
+uint32 CSteamAppsPlayingWrapper::GetInstalledDepots(AppId_t appID, DepotId_t *pvecDepots, uint32 cMaxDepots) {
 	rehlds_syserror("%s: not implemented", __func__);
 	//return 0;
 }
@@ -1096,3 +1096,82 @@ uint32 CSteamAppsPlayingWrapper::GetAppInstallDir(AppId_t appID, char *pchFolder
 	rehlds_syserror("%s: not implemented", __func__);
 	//return 0;
 }
+
+bool CSteamAppsPlayingWrapper::BIsAppInstalled(AppId_t appID) {
+	rehlds_syserror("%s: not implemented", __func__);
+	//return false;
+}
+
+CSteamID CSteamAppsPlayingWrapper::GetAppOwner() {
+	rehlds_syserror("%s: not implemented", __func__);
+	//return k_steamIDNil;
+}
+
+const char *CSteamAppsPlayingWrapper::GetLaunchQueryParam(const char *pchKey) {
+	rehlds_syserror("%s: not implemented", __func__);
+	//return NULL;
+}
+
+bool CSteamAppsPlayingWrapper::GetDlcDownloadProgress(AppId_t nAppID, uint64 *punBytesDownloaded, uint64 *punBytesTotal) {
+	rehlds_syserror("%s: not implemented", __func__);
+	//return false;
+}
+
+int CSteamAppsPlayingWrapper::GetAppBuildId() {
+	rehlds_syserror("%s: not implemented", __func__);
+	//return 0;
+}
+
+void CSteamAppsPlayingWrapper::RequestAllProofOfPurchaseKeys() {
+	rehlds_syserror("%s: not implemented", __func__);
+}
+
+SteamAPICall_t CSteamAppsPlayingWrapper::GetFileDetails(const char* pszFileName) {
+	rehlds_syserror("%s: not implemented", __func__);
+	//return k_uAPICallInvalid;
+}
+
+int CSteamAppsPlayingWrapper::GetLaunchCommandLine(char *pszCommandLine, int cubCommandLine) {
+	rehlds_syserror("%s: not implemented", __func__);
+	//return 0;
+}
+
+bool CSteamAppsPlayingWrapper::BIsSubscribedFromFamilySharing() {
+	rehlds_syserror("%s: not implemented", __func__);
+	//return false;
+}
+
+bool CSteamAppsPlayingWrapper::BIsTimedTrial(uint32* punSecondsAllowed, uint32* punSecondsPlayed) {
+	rehlds_syserror("%s: not implemented", __func__);
+	//return false;
+}
+
+bool CSteamAppsPlayingWrapper::SetDlcContext(AppId_t nAppID) {
+	rehlds_syserror("%s: not implemented", __func__);
+	//return false;
+}
+
+int CSteamAppsPlayingWrapper::GetNumBetas(int *pnAvailable, int *pnPrivate) {
+	rehlds_syserror("%s: not implemented", __func__);
+	//return 0;
+}
+
+bool CSteamAppsPlayingWrapper::GetBetaInfo(int iBetaIndex, uint32 *punFlags, uint32 *punBuildID, char *pchBetaName, int cchBetaName, char *pchDescription, int cchDescription, uint32 *punLastUpdated) {
+	rehlds_syserror("%s: not implemented", __func__);
+	//return false;
+}
+
+bool CSteamAppsPlayingWrapper::SetActiveBeta(const char *pchBetaName) {
+	rehlds_syserror("%s: not implemented", __func__);
+	//return false;
+}
+
+void CSteamAppsPlayingWrapper::SetGamePerformanceSetting(EGamePerformanceSetting setting) {
+	rehlds_syserror("%s: not implemented", __func__);
+}
+
+void CSteamAppsPlayingWrapper::SetGameRenderResolution(uint32 unWidth, uint32 unHeight) {
+	rehlds_syserror("%s: not implemented", __func__);
+}
+
+

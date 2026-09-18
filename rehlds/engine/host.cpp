@@ -743,8 +743,7 @@ qboolean Master_IsLanGame(void)
 
 void Master_Heartbeat_f(void)
 {
-	//Steam_ForceHeartbeat in move?
-	CRehldsPlatformHolder::get()->SteamGameServer()->ForceHeartbeat();
+	//does nothing
 }
 
 void Host_ComputeFPS(double frametime)

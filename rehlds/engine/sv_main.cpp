@@ -113,6 +113,7 @@ int giNextUserMsg = 64;
 
 cvar_t sv_lan = { "sv_lan", "0", 0, 0.0f, NULL };
 cvar_t sv_lan_rate = { "sv_lan_rate", "20000.0", 0, 0.0f, NULL };
+cvar_t sv_use_steam_networking = { "sv_use_steam_networking", "0", 0, 0.0f, NULL };
 cvar_t sv_aim = { "sv_aim", "1", FCVAR_SERVER | FCVAR_ARCHIVE , 0.0f, NULL };
 cvar_t sv_allow_autoaim = { "sv_allow_autoaim", "1", FCVAR_SERVER | FCVAR_ARCHIVE, 0.0f, NULL };
 
@@ -1756,6 +1757,7 @@ void EXT_FUNC SV_RejectConnection(netadr_t *adr, char *fmt, ...)
 	MSG_WriteByte(&net_message, '9');
 	MSG_WriteString(&net_message, text);
 	NET_SendPacket(net_sock, net_message.cursize, net_message.data, *adr);
+	NET_CheckCleanupFakeIPConnection(net_sock, adr);
 	SZ_Clear(&net_message);
 }
 
@@ -3279,6 +3281,7 @@ void SV_FlushRedirect(void)
 		MSG_WriteString(&buf, outputbuf);
 		MSG_WriteByte(&buf, 0);
 		NET_SendPacket(NS_SERVER, buf.cursize, buf.data, sv_redirectto);
+		NET_CheckCleanupFakeIPConnection(NS_SERVER, &sv_redirectto);
 		outputbuf[0] = 0;
 	}
 	else
@@ -8332,6 +8335,7 @@ void SV_Init(void)
 	Cvar_RegisterVariable(&sv_lan);
 	Cvar_DirectSet(&sv_lan, PF_IsDedicatedServer() ? "0" : "1");
 	Cvar_RegisterVariable(&sv_lan_rate);
+	Cvar_RegisterVariable(&sv_use_steam_networking);
 	Cvar_RegisterVariable(&sv_proxies);
 	Cvar_RegisterVariable(&sv_outofdatetime);
 	Cvar_RegisterVariable(&sv_visiblemaxplayers);

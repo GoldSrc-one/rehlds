@@ -5,7 +5,9 @@
 *.lnk
 *.aps
 **/msvc/Debug*
+**/msvc/*/Debug*
 **/msvc/Release*
+**/msvc/*/Release*
 **/msvc/Tests
 **/msvc/Test Fixes
 **/msvc/*.sdf

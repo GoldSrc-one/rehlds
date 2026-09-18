@@ -69,6 +69,8 @@ public:
 	virtual void SteamAPI_RunCallbacks() = 0;
 	virtual void SteamGameServer_Shutdown() = 0;
 	virtual void SteamAPI_UnregisterCallback(CCallbackBase *pCallback) = 0;
+	virtual ISteamNetworkingSockets* SteamGameServerNetworkingSockets(int iExtraGame) { (void)iExtraGame; return NULL; }
+	virtual ISteamNetworkingUtils* SteamNetworkingUtils() { return NULL; }
 };
 
 class CSimplePlatform : public IReHLDSPlatform {
@@ -128,6 +130,8 @@ public:
 	virtual void SteamAPI_RunCallbacks();
 	virtual void SteamGameServer_Shutdown();
 	virtual void SteamAPI_UnregisterCallback(CCallbackBase *pCallback);
+	virtual ISteamNetworkingSockets* SteamGameServerNetworkingSockets(int iExtraGame);
+	virtual ISteamNetworkingUtils* SteamNetworkingUtils();
 };
 
 class CRehldsPlatformHolder {

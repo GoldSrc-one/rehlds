@@ -3181,6 +3181,10 @@ void Host_ResourcesList_f()
 	Con_Printf("--------------\n%d Total %s's\n\n", nCountRes, pszType);
 }
 
+static const char *Host_FakeIPSuffix(int sock, netadr_t &adr) {
+	return g_FakeIP[sock] ? va(" (FakeIP %s)", NET_AdrToString(adr)) : "";
+}
+
 void Host_Ports_f() {
 	int port = (int)iphostport.value;
 	if(!NET_CheckPort(port))
@@ -3188,10 +3192,10 @@ void Host_Ports_f() {
 
 	if(num_extra_games) {
 		for(int iGame = 0; iGame < num_extra_games; iGame++)
-			Con_Printf(":%d %s\n", port + iGame, extra_games[iGame]);
+			Con_Printf(":%d %s%s\n", port + iGame, extra_games[iGame], Host_FakeIPSuffix(NS_EXTRA + iGame, net_local_adr_extra[iGame]));
 	}
 	else
-		Con_Printf(":%d %s\n", port, com_gamedir);
+		Con_Printf(":%d %s%s\n", port, com_gamedir, Host_FakeIPSuffix(NS_SERVER, net_local_adr));
 }
 #endif
 

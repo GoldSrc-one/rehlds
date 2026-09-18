@@ -156,6 +156,13 @@ extern unsigned char net_message_buffer[NET_MAX_PAYLOAD];
 extern unsigned char in_message_buf[NET_MAX_PAYLOAD];
 extern sizebuf_t in_message;
 extern netadr_t in_from;
+#ifdef REHLDS_FIXES
+// Define default to INVALID_SOCKET
+#define INV_SOCK INVALID_SOCKET
+#else
+// Original engine behavior
+#define INV_SOCK 0
+#endif
 extern SOCKET ip_sockets[NS_MAX];
 #ifdef _WIN32
 extern SOCKET ipx_sockets[NS_MAX];

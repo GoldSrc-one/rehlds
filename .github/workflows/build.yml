@@ -191,6 +191,8 @@ jobs:
             bin/win32/*
             bin/linux32/*
             debug/*
+            rehlds/lib/steam_api.dll
+            rehlds/lib/linux32/libsteam_api.so
 
         env:
           GITHUB_TOKEN: ${{ secrets.API_TOKEN }}
