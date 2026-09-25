@@ -62,11 +62,6 @@ jobs:
           $toolset = '${{ steps.select_toolset.outputs.toolset }}'
           msbuild ${{ env.solution }} -p:Configuration="${{ env.buildRelease }}" /t:Clean,Build /p:Platform=${{ env.buildPlatform }} /p:PlatformToolset=$toolset /p:XPDeprecationWarning=false
 
-      - name: Get rcedit from chocolatey
-        shell: pwsh
-        run: |
-          choco install rcedit -y
-
       - name: Move files
         run: |
           mkdir publish\debug
@@ -76,37 +71,6 @@ jobs:
           move msvc\${{ env.buildRelease }}\swds.dll publish\bin\win32\swds.dll
           move msvc\${{ env.buildRelease }}\hlds.pdb publish\debug\hlds.pdb
           move msvc\${{ env.buildRelease }}\swds.pdb publish\debug\swds.pdb
-
-      - name: Get app version
-        id: get_version
-        shell: pwsh
-        run: |
-          $versionFile = "rehlds/version/appversion.h"
-          if (-not (Test-Path $versionFile)) {
-            Write-Error "Version file not found: $versionFile"
-            exit 1
-          }
-
-          $content = Get-Content $versionFile
-          foreach ($line in $content) {
-            if ($line -match '^\s*#define\s+APP_VERSION\s+"([^"]+)"') {
-              $version = $matches[1]
-              "version=$version" >> $env:GITHUB_OUTPUT
-              Write-Host "Found version: $version"
-              exit 0
-            }
-          }
-          Write-Error "APP_VERSION not found in file"
-          exit 1
-
-      - name: Show version
-        run: echo "Version is ${{ steps.get_version.outputs.version }}"
-      - name: Edit resources at windows binaries
-        run: |
-         
-         rcedit ${{ github.workspace }}\publish\bin\win32\hlds.exe --set-version-string ProductName "ReHLDS" --set-file-version "${{ steps.get_version.outputs.version }}" --set-product-version "${{ steps.get_version.outputs.version }}" --set-version-string FileDescription "The Half-Life Dedicated Server, Commit: $env:GITHUB_SHA" --set-version-string "Comments" "Commit: $env:GITHUB_SHA" --set-version-string CompanyName "ReHLDS Dev Team" --set-version-string LegalCopyright "Copyright 2025 Valve, ReHLDS DevTeam"
-         rcedit ${{ github.workspace }}\publish\bin\win32\swds.dll --set-version-string ProductName "swds.dll" --set-file-version "${{ steps.get_version.outputs.version }}" --set-product-version "${{ steps.get_version.outputs.version }}" --set-version-string FileDescription "A ddll used by Steamworks Dedicated Servers, Commit: $env:GITHUB_SHA" --set-version-string "Comments" "Commit: $env:GITHUB_SHA" --set-version-string CompanyName "ReHLDS Dev Team" --set-version-string LegalCopyright "Copyright 2025 Valve, ReHLDS DevTeam" --set-icon rehlds/dedicated/msvc/icon.ico
-        shell: "pwsh"
 
       - name: Deploy artifacts
         uses: actions/upload-artifact@v4
