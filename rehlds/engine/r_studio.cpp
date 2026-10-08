@@ -574,6 +574,37 @@ void EXT_FUNC SV_StudioSetupBones(model_t *pModel, float frame, int sequence, co
 		R_StudioSlerpBones(q1, pos1, q2, pos2, *pblending / 255.0f);
 	}
 
+#ifdef REHLDS_FIXES
+	// calc gait animation (legs) like the client's StudioSetupBones, at gaitframe 0 like ReGameDLL
+	if (edict && edict->v.gaitsequence > 0 && edict->v.gaitsequence < pstudiohdr->numseq)
+	{
+		pseqdesc = (mstudioseqdesc_t *)((char *)pstudiohdr + pstudiohdr->seqindex) + edict->v.gaitsequence;
+		panim = R_GetAnim(pModel, pseqdesc);
+
+		for (int i = chainlength - 1; i >= 0; i--)
+		{
+			int bone = chain[i];
+			R_StudioCalcBoneQuaterion(0, 0, &pbones[bone], &panim[bone], adj, q2[bone]);
+			R_StudioCalcBonePosition(0, 0, &pbones[bone], &panim[bone], adj, pos2[bone]);
+		}
+
+		bool copy = true;
+		for (int i = 0; i < pstudiohdr->numbones; i++)
+		{
+			if (!Q_strcmp(pbones[i].name, "Bip01 Spine"))
+				copy = false;
+			else if (pbones[i].parent != -1 && !Q_strcmp(pbones[pbones[i].parent].name, "Bip01 Pelvis"))
+				copy = true;
+
+			if (copy)
+			{
+				VectorCopy(pos2[i], pos1[i]);
+				Q_memcpy(q1[i], q2[i], sizeof(q1[i]));
+			}
+		}
+	}
+#endif
+
 	AngleMatrix(angles, rotationmatrix);
 	rotationmatrix[0][3] = origin[0];
 	rotationmatrix[1][3] = origin[1];
