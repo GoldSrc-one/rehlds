@@ -278,6 +278,10 @@ typedef IVoidHookChainRegistryImpl<> CRehldsHookRegistry_SV_WriteBaselineMessage
 typedef IHookChainImpl<qboolean, IGameClient*> CRehldsHook_SV_SendClientDatagram;
 typedef IHookChainRegistryImpl<qboolean, IGameClient*> CRehldsHookRegistry_SV_SendClientDatagram;
 
+//SV_HullForStudioModel hook
+typedef IHookChainImpl<hull_t *, const edict_t *, const vec_t *, const vec_t *, vec_t *, int *> CRehldsHook_SV_HullForStudioModel;
+typedef IHookChainRegistryImpl<hull_t *, const edict_t *, const vec_t *, const vec_t *, vec_t *, int *> CRehldsHookRegistry_SV_HullForStudioModel;
+
 class CRehldsHookchains : public IRehldsHookchains {
 public:
 	CRehldsHookRegistry_Steam_NotifyClientConnect m_Steam_NotifyClientConnect;
@@ -341,6 +345,7 @@ public:
 	CRehldsHookRegistry_SV_SendUserReg m_SV_SendUserReg;
 	CRehldsHookRegistry_SV_WriteBaselineMessage m_SV_WriteBaselineMessage;
 	CRehldsHookRegistry_SV_SendClientDatagram m_SV_SendClientDatagram;
+	CRehldsHookRegistry_SV_HullForStudioModel m_SV_HullForStudioModel;
 
 public:
 	EXT_FUNC virtual IRehldsHookRegistry_Steam_NotifyClientConnect* Steam_NotifyClientConnect();
@@ -404,6 +409,7 @@ public:
 	EXT_FUNC virtual IRehldsHookRegistry_SV_SendUserReg* SV_SendUserReg();
 	EXT_FUNC virtual IRehldsHookRegistry_SV_WriteBaselineMessage* SV_WriteBaselineMessage();
 	EXT_FUNC virtual IRehldsHookRegistry_SV_SendClientDatagram* SV_SendClientDatagram();
+	EXT_FUNC virtual IRehldsHookRegistry_SV_HullForStudioModel* SV_HullForStudioModel();
 };
 
 extern CRehldsHookchains g_RehldsHookchains;

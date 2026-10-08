@@ -762,7 +762,17 @@ void R_StudioPlayerBlend(mstudioseqdesc_t *pseqdesc, int *pBlend, float *pPitch)
 	}
 }
 
+hull_t *EXT_FUNC SV_HullForStudioModel_hook(const edict_t *pEdict, const vec_t *mins, const vec_t *maxs, vec_t *offset, int *pNumHulls)
+{
+	return SV_HullForStudioModel_internal(pEdict, mins, maxs, offset, pNumHulls);
+}
+
 hull_t *SV_HullForStudioModel(const edict_t *pEdict, const vec_t *mins, const vec_t *maxs, vec_t *offset, int *pNumHulls)
+{
+	return g_RehldsHookchains.m_SV_HullForStudioModel.callChain(SV_HullForStudioModel_hook, pEdict, mins, maxs, offset, pNumHulls);
+}
+
+hull_t *SV_HullForStudioModel_internal(const edict_t *pEdict, const vec_t *mins, const vec_t *maxs, vec_t *offset, int *pNumHulls)
 {
 	qboolean useComplexHull = FALSE;
 	vec3_t size;

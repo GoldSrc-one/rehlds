@@ -957,6 +957,10 @@ IRehldsHookRegistry_SV_SendClientDatagram* CRehldsHookchains::SV_SendClientDatag
 	return &m_SV_SendClientDatagram;
 }
 
+IRehldsHookRegistry_SV_HullForStudioModel* CRehldsHookchains::SV_HullForStudioModel() {
+	return &m_SV_HullForStudioModel;
+}
+
 int EXT_FUNC CRehldsApi::GetMajorVersion()
 {
 	return REHLDS_API_VERSION_MAJOR;

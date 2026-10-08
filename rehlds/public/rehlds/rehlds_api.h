@@ -39,7 +39,7 @@
 #include "pr_dlls.h"
 
 #define REHLDS_API_VERSION_MAJOR 3
-#define REHLDS_API_VERSION_MINOR 16
+#define REHLDS_API_VERSION_MINOR 17
 
 //Steam_NotifyClientConnect hook
 typedef IHookChain<qboolean, IGameClient*, const void*, unsigned int> IRehldsHook_Steam_NotifyClientConnect;
@@ -285,6 +285,10 @@ typedef IVoidHookChainRegistry<> IRehldsHookRegistry_SV_WriteBaselineMessage;
 typedef IHookChain<qboolean, IGameClient*> IRehldsHook_SV_SendClientDatagram;
 typedef IHookChainRegistry<qboolean, IGameClient*> IRehldsHookRegistry_SV_SendClientDatagram;
 
+//SV_HullForStudioModel hook
+typedef IHookChain<hull_t *, const edict_t *, const vec_t *, const vec_t *, vec_t *, int *> IRehldsHook_SV_HullForStudioModel;
+typedef IHookChainRegistry<hull_t *, const edict_t *, const vec_t *, const vec_t *, vec_t *, int *> IRehldsHookRegistry_SV_HullForStudioModel;
+
 class IRehldsHookchains {
 public:
 	virtual ~IRehldsHookchains() { }
@@ -350,6 +354,7 @@ public:
 	virtual IRehldsHookRegistry_SV_SendUserReg* SV_SendUserReg() = 0;
 	virtual IRehldsHookRegistry_SV_WriteBaselineMessage* SV_WriteBaselineMessage() = 0;
 	virtual IRehldsHookRegistry_SV_SendClientDatagram* SV_SendClientDatagram() = 0;
+	virtual IRehldsHookRegistry_SV_HullForStudioModel* SV_HullForStudioModel() = 0;
 };
 
 struct RehldsFuncs_t {

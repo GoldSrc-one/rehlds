@@ -85,6 +85,7 @@ void R_FlushStudioCache();
 int R_StudioBodyVariations(model_t *model);
 void R_StudioPlayerBlend(mstudioseqdesc_t *pseqdesc, int *pBlend, float *pPitch);
 hull_t *SV_HullForStudioModel(const edict_t *pEdict, const vec_t *mins, const vec_t *maxs, vec_t *offset, int *pNumHulls);
+hull_t *SV_HullForStudioModel_internal(const edict_t *pEdict, const vec_t *mins, const vec_t *maxs, vec_t *offset, int *pNumHulls);
 qboolean DoesSphereIntersect(float *vSphereCenter, float fSphereRadiusSquared, float *vLinePt, float *vLineDir);
 qboolean SV_CheckSphereIntersection(edict_t *ent, const vec_t *start, const vec_t *end);
 void AnimationAutomove(const edict_t *pEdict, float flTime);
