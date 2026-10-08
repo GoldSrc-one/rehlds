@@ -194,6 +194,7 @@ struct sentenceGroupEntry_
 // Function declarations
 //---------------------------------------------------------------------------
 sequenceEntry_s* SequenceGet( const char* fileName, const char* entryName );
+void Sequence_Init( void );
 void Sequence_ParseFile( const char* fileName, qboolean isGlobal );
 void Sequence_OnLevelLoad( const char* mapName );
 sentenceEntry_s* SequencePickSentence( const char *groupName, int pickMethod, int *picked );

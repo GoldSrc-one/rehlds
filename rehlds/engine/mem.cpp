@@ -52,6 +52,9 @@ void* EXT_FUNC Mem_Calloc(int num, size_t size)
 
 char *Mem_Strdup(const char *strSource)
 {
+	if (!strSource)
+		return NULL;
+
 	return _strdup(strSource);
 }
 

@@ -64,6 +64,7 @@
     <ClCompile Include="..\engine\pr_edict.cpp" />
     <ClCompile Include="..\engine\public_amalgamation.cpp" />
     <ClCompile Include="..\engine\r_studio.cpp" />
+    <ClCompile Include="..\engine\sequence.cpp" />
     <ClCompile Include="..\engine\snd_null.cpp" />
     <ClCompile Include="..\engine\sse_mathfun.cpp" />
     <ClCompile Include="..\engine\sv_log.cpp" />

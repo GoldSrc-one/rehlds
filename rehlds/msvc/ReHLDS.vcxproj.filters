@@ -170,6 +170,9 @@
     <ClCompile Include="..\engine\r_studio.cpp">
       <Filter>engine\common</Filter>
     </ClCompile>
+    <ClCompile Include="..\engine\sequence.cpp">
+      <Filter>engine\common</Filter>
+    </ClCompile>
     <ClCompile Include="..\unittests\common_tests.cpp">
       <Filter>unittests</Filter>
     </ClCompile>

@@ -85,7 +85,6 @@ void CL_CheckClientState(void) { }
 void CL_RedoPrediction(void) { }
 void CL_SetLastUpdate(void) { }
 void EXT_FUNC Con_NPrintf(int idx, const char *fmt, ...) { }
-void Sequence_OnLevelLoad( const char* mapName ) { }
 void CL_WriteMessageHistory(int starting_count, int cmd) { }
 void CL_MoveSpectatorCamera(void) { }
 void CL_AddVoiceToDatagram(qboolean bFinal) { }

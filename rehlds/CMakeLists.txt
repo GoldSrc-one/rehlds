@@ -169,6 +169,7 @@ set(ENGINE_SRCS
 	engine/mem.cpp
 	engine/module.cpp
 	engine/r_studio.cpp
+	engine/sequence.cpp
 	engine/vid_null.cpp
 	engine/cl_null.cpp
 	engine/snd_null.cpp

@@ -1145,6 +1145,7 @@ int Host_Init(quakeparms_t *parms)
 	Netchan_Init();
 	DELTA_Init();
 	SV_Init();
+	Sequence_Init();
 	SystemWrapper_Init();
 	Host_Version();
 
