@@ -413,6 +413,11 @@ qboolean SV_IsPlayerIndex(int index)
 	return (index >= 1 && index <= g_psvs.maxclients);
 }
 
+qboolean SV_IsSaveRestoreGame(void)
+{
+	return g_psvs.maxclients == 1 || coop.value != 0.0f;
+}
+
 #ifdef _WIN32
 qboolean __declspec(naked) SV_IsPlayerIndex_wrapped(int index)
 {
@@ -1415,15 +1420,18 @@ void SV_WriteSpawn(sizebuf_t *msg)
 #endif // REHLDS_FIXES
 
 	if (g_psv.loadgame)
-	{
-		if (host_client->proxy)
-		{
-			Con_Printf("ERROR! Spectator mode doesn't work with saved game.\n");
-			return;
-		}
 		g_psv.paused = FALSE;
+
+	qboolean hasPlayer = FALSE;
+	if (SV_IsSaveRestoreGame() && !host_client->proxy)
+	{
+		if (g_GameClients[host_client - g_psvs.clients]->GetSpawnedOnce() && sv_player->pvPrivateData)
+			hasPlayer = TRUE;
+		else
+			hasPlayer = RestorePlayerState(host_client);
 	}
-	else
+
+	if (!hasPlayer)
 	{
 		g_psv.state = ss_loading;
 		ReleaseEntityDLLFields(sv_player);
@@ -1505,9 +1513,6 @@ void SV_WriteSpawn(sizebuf_t *msg)
 	host_client->spawned = TRUE;
 	host_client->connected = TRUE;
 	host_client->fully_connected = FALSE;
-
-	if(g_psvs.maxclients == 1)
-		g_psv.loadgame = TRUE; //unify singleplayer client reconnect behavior
 
 #ifdef REHLDS_FIXES
 	g_GameClients[host_client - g_psvs.clients]->SetSpawnedOnce(true);
@@ -6321,7 +6326,7 @@ int SV_SpawnServer(qboolean bIsDemo, char *server, char *startspot)
 	char *pszhost;
 	char oldname[64];
 
-	if (g_psv.active && !startspot)
+	if (g_psv.active && !SV_IsSaveRestoreGame())
 	{
 		cl = g_psvs.clients;
 		for (i = 0; i < g_psvs.maxclients; i++, cl++)
@@ -6477,7 +6482,7 @@ int SV_SpawnServer(qboolean bIsDemo, char *server, char *startspot)
 	g_psv.num_edicts = g_psvs.maxclients + 1;
 
 	cl = g_psvs.clients;
-	for (i = 1; i < g_psvs.maxclients; i++, cl++)
+	for (i = 1; i <= g_psvs.maxclients; i++, cl++)
 		cl->edict = &g_psv.edicts[i];
 
 	gGlobalVariables.maxClients = g_psvs.maxclients;

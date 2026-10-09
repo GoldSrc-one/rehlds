@@ -452,8 +452,9 @@ void SV_DropClient(client_t *cl, qboolean crash, const char *fmt, ...)
 
 void SV_DropClient_internal(client_t *cl, qboolean crash, const char *string)
 {
-	if(g_psv.loadgame && !cl->fakeclient)
-		cl->edict = NULL; //suppress client disconnect in singleplayer
+	// singleplayer/coop: keep the player's state for when they come back, before ClientDisconnect strips the items
+	if (SV_IsSaveRestoreGame() && g_psv.active)
+		SavePlayerState(cl);
 
 	int i;
 	unsigned char final[512];

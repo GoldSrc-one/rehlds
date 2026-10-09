@@ -904,7 +904,7 @@ void Host_Map(qboolean bIsDemo, char *mapstring, char *mapName, qboolean loadGam
 		ContinueLoadingProgressBar("Server", 7, 0.0);
 		if (loadGame)
 		{
-			if (!LoadGamestate(mapName, 1))
+			if (!LoadGamestate(mapName, 0))
 				SV_LoadEntities();
 			g_psv.paused = TRUE;
 			g_psv.loadgame = TRUE;
@@ -1272,7 +1272,7 @@ int Host_ValidSave(void)
 		Con_Printf("Not playing a local game.\n");
 		return 0;
 	}
-	if (g_psvs.maxclients != 1)
+	if (!SV_IsSaveRestoreGame())
 	{
 		Con_Printf("Can't save multiplayer games.\n");
 		return 0;
@@ -1287,10 +1287,14 @@ int Host_ValidSave(void)
 		Con_Printf("Can't save in intermission.\n");
 		return 0;
 	}
-	if (g_psvs.clients->active && g_psvs.clients->edict->v.health <= 0.0)
+	for (int i = 0; i < g_psvs.maxclients; i++)
 	{
-		Con_Printf("Can't savegame with a dead player\n");
-		return 0;
+		client_t *cl = &g_psvs.clients[i];
+		if (cl->active && cl->edict->v.health <= 0.0)
+		{
+			Con_Printf("Can't savegame with a dead player\n");
+			return 0;
+		}
 	}
 	return 1;
 }
@@ -1370,6 +1374,10 @@ qboolean SaveGameSlot(const char *pSaveName, const char *pSaveComment)
 		return FALSE;
 
 	SaveExit(pSaveData);
+
+	for (i = 0; i < g_psvs.maxclients; i++)
+		SavePlayerState(&g_psvs.clients[i]);
+
 	pSaveData = SaveInit(0);
 
 	Q_snprintf(hlPath, sizeof(hlPath), "%s*.HL?", Host_SaveGameDirectory());
@@ -1402,21 +1410,25 @@ qboolean SaveGameSlot(const char *pSaveName, const char *pSaveComment)
 		Host_SaveAgeList(pSaveName, 1);
 
 	pFile = FS_OpenPathID(name, "wb", "GAMECONFIG");
-
-	tag = SAVEGAME_HEADER;
-	FS_Write(&tag, sizeof(int), 1, pFile);
-	tag = SAVEGAME_VERSION;
-	FS_Write(&tag, sizeof(int), 1, pFile);
-	FS_Write(&pSaveData->size, sizeof(int), 1, pFile);
-	FS_Write(&pSaveData->tokenCount, sizeof(int), 1, pFile);
-	FS_Write(&pSaveData->tokenSize, sizeof(int), 1, pFile);
-	FS_Write(pTokenData, pSaveData->tokenSize, 1, pFile);
-	FS_Write(pSaveData->pBaseData, pSaveData->size, 1, pFile);
-	DirectoryCopy(hlPath, pFile);
-	FS_Close(pFile);
+	if (pFile)
+	{
+		tag = SAVEGAME_HEADER;
+		FS_Write(&tag, sizeof(int), 1, pFile);
+		tag = SAVEGAME_VERSION;
+		FS_Write(&tag, sizeof(int), 1, pFile);
+		FS_Write(&pSaveData->size, sizeof(int), 1, pFile);
+		FS_Write(&pSaveData->tokenCount, sizeof(int), 1, pFile);
+		FS_Write(&pSaveData->tokenSize, sizeof(int), 1, pFile);
+		FS_Write(pTokenData, pSaveData->tokenSize, 1, pFile);
+		FS_Write(pSaveData->pBaseData, pSaveData->size, 1, pFile);
+		DirectoryCopy(hlPath, pFile);
+		FS_Close(pFile);
+	}
+	else
+		Con_Printf("Unable to open save game file %s.\n", name);
 	SaveExit(pSaveData);
 
-	return TRUE;
+	return pFile != NULL;
 }
 
 void Host_Savegame_f(void)
@@ -1439,6 +1451,8 @@ void Host_Savegame_f(void)
 	}
 	if(g_pSaveGameCommentFunc)
 		g_pSaveGameCommentFunc(szTemp, 80);
+	else
+		Q_strlcpy(szTemp, g_psv.name);
 	Q_snprintf(szComment, sizeof(szComment) - 1,"%-64.64s %02d:%02d", szTemp, (int)(g_psv.time / 60.0), (int)fmod(g_psv.time, 60.0));
 	SaveGameSlot(Cmd_Argv(1), szComment);
 	CL_HudMessage("GAMESAVED");
@@ -1453,6 +1467,8 @@ void Host_AutoSave_f(void)
 	{
 		if(g_pSaveGameCommentFunc)
 			g_pSaveGameCommentFunc(szTemp, 80);
+		else
+			Q_strlcpy(szTemp, g_psv.name);
 		Q_snprintf(szComment, sizeof(szComment) - 1, "%-64.64s %02d:%02d", szTemp, (int)(g_psv.time / 60.0), (int)fmod(g_psv.time, 60.0));
 		szComment[sizeof(szComment) - 1] = 0;
 		SaveGameSlot("autosave", szComment);
@@ -1625,14 +1641,30 @@ int Host_Load(const char *pName)
 	FS_Close(pFile);
 
 	Cvar_SetValue("deathmatch", 0.0);
-	Cvar_SetValue("coop", 0.0);
-
-	if (!Q_stricmp(com_gamedir,"valve")
-		|| !Q_stricmp(com_gamedir,"bshift")
-		|| !Q_stricmp(com_gamedir,"gearbox"))
+	if (g_psvs.maxclients == 1 || coop.value == 0.0f)
 	{
-		g_psvs.maxclients = 1;
-		Cvar_SetValue("maxplayers", 1.0);
+		Cvar_SetValue("coop", 0.0);
+
+		if (!Q_stricmp(com_gamedir,"valve")
+			|| !Q_stricmp(com_gamedir,"bshift")
+			|| !Q_stricmp(com_gamedir,"gearbox"))
+		{
+			g_psvs.maxclients = 1;
+			Cvar_SetValue("maxplayers", 1.0);
+		}
+	}
+
+	if (g_psv.active && SV_IsSaveRestoreGame())
+	{
+		SV_ServerShutdown();
+		if (!SV_SpawnServer(FALSE, gameHeader.mapName, NULL))
+			return 0;
+		if (!LoadGamestate(gameHeader.mapName, 0))
+			SV_LoadEntities();
+		g_psv.paused = TRUE;
+		g_psv.loadgame = TRUE;
+		SV_ActivateServer(0);
+		return 1;
 	}
 
 	Q_snprintf(name, sizeof(name), "map %s\n", gameHeader.mapName);
@@ -1641,15 +1673,60 @@ int Host_Load(const char *pName)
 	return 1;
 }
 
-SAVERESTOREDATA *SaveGamestate(void)
+static qboolean SaveWriteGamestateFile(SAVERESTOREDATA *pSaveData, char *name)
 {
-	char name[256];
 	char *pTableData;
 	char *pTokenData;
 	FILE *pFile;
 	int i;
 	int dataSize;
 	int tableSize;
+
+	dataSize = pSaveData->size;
+
+	pTableData = pSaveData->pCurrentData;
+	for (i = 0; i < pSaveData->tableCount; i++)
+		gEntityInterface.pfnSaveWriteFields(pSaveData, "ETABLE", &pSaveData->pTable[i], gEntityTableDescription, ARRAYSIZE(gEntityTableDescription));
+
+	tableSize = pSaveData->pCurrentData - pTableData;
+
+	pTokenData = pSaveData->pCurrentData;
+	for (i = 0; i < pSaveData->tokenCount; i++)
+	{
+		while(pSaveData->pTokens[i] && *pSaveData->pTokens[i]) {
+			*pSaveData->pCurrentData++ = *pSaveData->pTokens[i]++;
+		}
+		*pSaveData->pCurrentData++ = 0;
+	}
+	pSaveData->tokenSize = (int)(pSaveData->pCurrentData - pTokenData);
+
+	COM_CreatePath(name);
+	pFile = FS_OpenPathID(name, "wb", "GAMECONFIG");
+	if (!pFile)
+	{
+		Con_Printf("Unable to open save game file %s.", name);
+		return FALSE;
+	}
+
+	i = SAVEFILE_HEADER;
+	FS_Write(&i, sizeof(int), 1, pFile);
+	i = SAVEGAME_VERSION;
+	FS_Write(&i, sizeof(int), 1, pFile);
+	FS_Write(&pSaveData->size, sizeof(int), 1, pFile);
+	FS_Write(&pSaveData->tableCount, sizeof(int), 1, pFile);
+	FS_Write(&pSaveData->tokenCount, sizeof(int), 1, pFile);
+	FS_Write(&pSaveData->tokenSize, sizeof(int), 1, pFile);
+	FS_Write(pTokenData, pSaveData->tokenSize, 1, pFile);
+	FS_Write(pTableData, tableSize, 1, pFile);
+	FS_Write(pSaveData->pBaseData, dataSize, 1, pFile);
+	FS_Close(pFile);
+	return TRUE;
+}
+
+SAVERESTOREDATA *SaveGamestate(void)
+{
+	char name[256];
+	int i;
 	edict_t *pent;
 	SAVE_HEADER header;
 	SAVERESTOREDATA *pSaveData;
@@ -1712,6 +1789,8 @@ SAVERESTOREDATA *SaveGamestate(void)
 		pent = &g_psv.edicts[i];
 		pSaveData->currentIndex = i;
 		pSaveData->pTable[i].location = pSaveData->size;
+		if (SV_IsPlayerIndex(i) && !g_psvs.clients[i - 1].active && !g_psvs.clients[i - 1].connected)
+			continue;
 		if (!pent->free)
 		{
 			gEntityInterface.pfnSave(pent, pSaveData);
@@ -1720,44 +1799,11 @@ SAVERESTOREDATA *SaveGamestate(void)
 		}
 	}
 
-	dataSize = pSaveData->size;
-
-	pTableData = pSaveData->pCurrentData;
-	for (i = 0; i < g_psv.num_edicts; i++)
-		gEntityInterface.pfnSaveWriteFields(pSaveData, "ETABLE", &pSaveData->pTable[i], gEntityTableDescription, ARRAYSIZE(gEntityTableDescription));
-
-	tableSize = pSaveData->pCurrentData - pTableData;
-
-	pTokenData = pSaveData->pCurrentData;
-	for (i = 0; i < pSaveData->tokenCount; i++)
+	if (!SaveWriteGamestateFile(pSaveData, name))
 	{
-		while(pSaveData->pTokens[i] && *pSaveData->pTokens[i]) {
-			*pSaveData->pCurrentData++ = *pSaveData->pTokens[i]++;
-		}
-		*pSaveData->pCurrentData++ = 0;
-	}
-	pSaveData->tokenSize = (int)(pSaveData->pCurrentData - pTokenData);
-
-	COM_CreatePath(name);
-	pFile = FS_OpenPathID(name, "wb", "GAMECONFIG");
-	if (!pFile)
-	{
-		Con_Printf("Unable to open save game file %s.", name);
+		SaveExit(pSaveData);
 		return NULL;
 	}
-
-	i = SAVEFILE_HEADER;
-	FS_Write(&i, sizeof(int), 1, pFile);
-	i = SAVEGAME_VERSION;
-	FS_Write(&i, sizeof(int), 1, pFile);
-	FS_Write(&pSaveData->size, sizeof(int), 1, pFile);
-	FS_Write(&pSaveData->tableCount, sizeof(int), 1, pFile);
-	FS_Write(&pSaveData->tokenCount, sizeof(int), 1, pFile);
-	FS_Write(&pSaveData->tokenSize, sizeof(int), 1, pFile);
-	FS_Write(pTokenData, pSaveData->tokenSize, 1, pFile);
-	FS_Write(pTableData, tableSize, 1, pFile);
-	FS_Write(pSaveData->pBaseData, dataSize, 1, pFile);
-	FS_Close(pFile);
 	EntityPatchWrite(pSaveData, g_psv.name);
 
 	Q_snprintf(name, sizeof(name), "%s%s.HL2", Host_SaveGameDirectory(), g_psv.name);
@@ -1788,6 +1834,14 @@ void EntityInit(edict_t *pEdict, int className)
 SAVERESTOREDATA *LoadSaveData(const char *level)
 {
 	char name[MAX_PATH];
+
+	Q_snprintf(name, sizeof(name), "%s%s.HL1", Host_SaveGameDirectory(), level);
+	COM_FixSlashes(name);
+	return LoadSaveDataFile(name, level);
+}
+
+SAVERESTOREDATA *LoadSaveDataFile(const char *name, const char *level)
+{
 	char *pszTokenList;
 	FILE *pFile;
 	int i;
@@ -1797,8 +1851,6 @@ SAVERESTOREDATA *LoadSaveData(const char *level)
 	int tableCount;
 	SAVERESTOREDATA *pSaveData;
 
-	Q_snprintf(name, sizeof(name), "%s%s.HL1", Host_SaveGameDirectory(), level);
-	COM_FixSlashes(name);
 	Con_Printf("Loading game from %s...\n", name);
 	pFile = FS_OpenPathID(name, "rb", "GAMECONFIG");
 	if (!pFile)
@@ -1997,15 +2049,12 @@ int LoadGamestate(char *level, int createPlayers)
 		{
 			if (pEntInfo->id)
 			{
-				if (pEntInfo->id > g_psvs.maxclients)
+				if (!(pEntInfo->flags & FENTTABLE_PLAYER))
 					pent = CreateNamedEntity(pEntInfo->classname);
 				else
 				{
-					if (!(pEntInfo->flags & FENTTABLE_PLAYER))
-						Sys_Error("%s: ENTITY IS NOT A PLAYER: %d\n", __func__, i);
-
 					pent = EDICT_NUM(pEntInfo->id);
-					if (createPlayers && pent)
+					if (createPlayers && SV_IsPlayerIndex(pEntInfo->id))
 						EntityInit(pent, pEntInfo->classname);
 					else
 						pent = NULL;
@@ -2024,6 +2073,7 @@ int LoadGamestate(char *level, int createPlayers)
 		pEntInfo = &pSaveData->pTable[i];
 		pent = pEntInfo->pent;
 
+		pSaveData->currentIndex = i;
 		pSaveData->size = pEntInfo->location;
 		pSaveData->pCurrentData = &pSaveData->pBaseData[pEntInfo->location];
 
@@ -2106,20 +2156,13 @@ int CreateEntityList(SAVERESTOREDATA *pSaveData, int levelMask)
 		if (pEntInfo->classname && pEntInfo->size && pEntInfo->id)
 		{
 			active = !!(pEntInfo->flags & levelMask);
-			if (SV_IsPlayerIndex(pEntInfo->id))
+			if (pEntInfo->flags & FENTTABLE_PLAYER)
 			{
-				client_t *cl = &g_psvs.clients[pEntInfo->id - 1];
-				if (active && cl)
+				if (SV_IsPlayerIndex(pEntInfo->id))
 				{
-					pent = cl->edict;
-					if (pent && !pent->free)
-					{
-						if (!(pEntInfo->flags & FENTTABLE_PLAYER))
-							Sys_Error("%s: ENTITY IS NOT A PLAYER: %d\n", __func__, i);
-
-						if (cl->active)
-							EntityInit(pent, pEntInfo->classname);
-					}
+					pent = EDICT_NUM(pEntInfo->id);
+					if (active)
+						EntityInit(pent, pEntInfo->classname);
 				}
 			}
 			else if (active)
@@ -2234,6 +2277,134 @@ void LoadAdjacentEntities(const char *pOldLevel, const char *pLandmarkName)
 		}
 	}
 	gGlobalVariables.pSaveData = NULL;
+}
+
+
+void PlayerStateName(client_t *cl, char *name, int size)
+{
+	char key[64];
+
+	if (cl->network_userid.m_SteamID)
+		Q_snprintf(key, sizeof(key), "%llu", (unsigned long long)cl->network_userid.m_SteamID);
+	else
+	{
+		MD5Context_t ctx;
+		unsigned char digest[16];
+		MD5Init(&ctx);
+		MD5Update(&ctx, (const unsigned char *)cl->name, Q_strlen(cl->name));
+		MD5Final(digest, &ctx);
+		Q_strlcpy(key, MD5_Print(digest));
+	}
+	Q_snprintf(name, size, "%sP%s.HLP", Host_SaveGameDirectory(), key);
+	COM_FixSlashes(name);
+}
+
+qboolean SavePlayerState(client_t *cl)
+{
+	char name[MAX_PATH];
+	int i;
+	edict_t *pent;
+	edict_t *pPlayer = cl->edict;
+	qboolean saved;
+	SAVE_HEADER header;
+	SAVERESTOREDATA *pSaveData;
+
+	if (cl->fakeclient || !(cl->active || cl->connected) || !pPlayer || !pPlayer->pvPrivateData)
+		return FALSE;
+
+	FS_CreateDirHierarchy(Host_SaveGameDirectory(), "GAMECONFIG");
+	pSaveData = SaveInit(0);
+
+	Q_memset(&header, 0, sizeof(header));
+	header.version = build_number();
+	header.entityCount = pSaveData->tableCount;
+	header.time = g_psv.time;
+	Q_strlcpy(header.mapName, g_psv.name);
+	pSaveData->time = 0.0f;
+	gEntityInterface.pfnSaveWriteFields(pSaveData, "Save Header", &header, gSaveHeaderDescription, ARRAYSIZE(gSaveHeaderDescription));
+	pSaveData->time = header.time;
+
+	for (i = 0; i < g_psv.num_edicts; i++)
+	{
+		pent = &g_psv.edicts[i];
+		// the player and the weapons and items it carries
+		if (pent != pPlayer && (pent->free || pent->v.aiment != pPlayer || pent->v.movetype != MOVETYPE_FOLLOW))
+			continue;
+
+		pSaveData->currentIndex = i;
+		pSaveData->pTable[i].location = pSaveData->size;
+		gEntityInterface.pfnSave(pent, pSaveData);
+		pSaveData->pTable[i].flags |= (pent == pPlayer) ? FENTTABLE_PLAYER : FENTTABLE_MOVEABLE;
+	}
+
+	PlayerStateName(cl, name, sizeof(name));
+	saved = SaveWriteGamestateFile(pSaveData, name);
+	SaveExit(pSaveData);
+	return saved;
+}
+
+qboolean RestorePlayerState(client_t *cl)
+{
+	char name[MAX_PATH];
+	const char *pfn;
+	int i;
+	qboolean restored = FALSE;
+	SAVE_HEADER header;
+	SAVERESTOREDATA *pSaveData;
+
+	PlayerStateName(cl, name, sizeof(name));
+	if (!FS_FileExists(name))
+	{
+		if (g_psvs.maxclients != 1)
+			return FALSE;
+
+		Q_snprintf(name, sizeof(name), "%sP*.HLP", Host_SaveGameDirectory());
+		COM_FixSlashes(name);
+		pfn = Sys_FindFirstPathID(name, "GAMECONFIG");
+		if (pfn)
+		{
+			Q_snprintf(name, sizeof(name), "%s%s", Host_SaveGameDirectory(), pfn);
+			COM_FixSlashes(name);
+		}
+		Sys_FindClose();
+		if (!pfn)
+			return FALSE;
+	}
+
+	pSaveData = LoadSaveDataFile(name, g_psv.name);
+	if (pSaveData)
+	{
+		ParseSaveTables(pSaveData, &header, 0);
+		if (!Q_stricmp(header.mapName, g_psv.name))
+		{
+			pSaveData->time = g_psv.time;
+			for (i = 0; i < pSaveData->tableCount; i++)
+			{
+				if (pSaveData->pTable[i].flags & FENTTABLE_PLAYER)
+					pSaveData->pTable[i].id = NUM_FOR_EDICT(cl->edict);
+			}
+			CreateEntityList(pSaveData, FENTTABLE_PLAYER | FENTTABLE_MOVEABLE);
+			restored = cl->edict->pvPrivateData != NULL;
+		}
+		SaveExit(pSaveData);
+	}
+	FS_RemoveFile(name, "GAMECONFIG");
+	return restored;
+}
+
+void RemovePlayerStates(void)
+{
+	char name[MAX_PATH];
+	const char *pfn;
+
+	Q_snprintf(name, sizeof(name), "%sP*.HLP", Host_SaveGameDirectory());
+	COM_FixSlashes(name);
+	for (pfn = Sys_FindFirstPathID(name, "GAMECONFIG"); pfn; pfn = Sys_FindNext(NULL))
+	{
+		Q_snprintf(name, sizeof(name), "%s%s", Host_SaveGameDirectory(), pfn);
+		FS_RemoveFile(name, "GAMECONFIG");
+	}
+	Sys_FindClose();
 }
 
 int FileSize(FileHandle_t pFile)
@@ -2377,7 +2548,7 @@ void Host_Changelevel2_f(void)
 		Con_Printf("Only the server may changelevel\n");
 		return;
 	}
-	if (g_psvs.maxclients > 1)
+	if (!SV_IsSaveRestoreGame())
 	{
 		Con_Printf("changelevel2 <levelname> : not for use with multiplayer games\n");
 		return;
@@ -2389,7 +2560,7 @@ void Host_Changelevel2_f(void)
 	Q_strncpy(level, Cmd_Argv(1), sizeof(level) - 1);
 	level[sizeof(level) - 1] = 0;
 
-	if (Cmd_Argc() != 2)
+	if (Cmd_Argc() != 2 && Cmd_Argv(2)[0])
 	{
 		startspot = &_startspot[0];
 		Q_strncpy(_startspot, Cmd_Argv(2), sizeof(_startspot) - 1);
@@ -2402,13 +2573,18 @@ void Host_Changelevel2_f(void)
 	oldlevel[sizeof(oldlevel) - 1] = 0;
 
 	pSaveData = SaveGamestate();
+	RemovePlayerStates();
 
 	if(g_bIsDedicatedServer) {
-		g_psvs.clients->crcValue = 0;
+		for (int i = 0; i < g_psvs.maxclients; i++)
+			g_psvs.clients[i].crcValue = 0;
 		Netchan_Clear(&g_pcls.netchan);
 		SZ_Clear(&g_pcls.netchan.message);
 	}
-	
+
+	if (g_psvs.maxclients > 1)
+		SV_InactivateClients();
+
 	SV_ServerShutdown();
 	FS_LogLevelLoadStarted(level);
 
