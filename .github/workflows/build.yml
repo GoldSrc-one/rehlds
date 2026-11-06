@@ -71,6 +71,7 @@ jobs:
           move msvc\${{ env.buildRelease }}\swds.dll publish\bin\win32\swds.dll
           move msvc\${{ env.buildRelease }}\hlds.pdb publish\debug\hlds.pdb
           move msvc\${{ env.buildRelease }}\swds.pdb publish\debug\swds.pdb
+          copy rehlds\lib\steam_api.dll publish\bin\win32\steam_api.dll
 
       - name: Deploy artifacts
         uses: actions/upload-artifact@v4
@@ -98,7 +99,6 @@ jobs:
           files: |
             bin/win32/*
             debug/*
-            rehlds/lib/steam_api.dll
 
         env:
           GITHUB_TOKEN: ${{ secrets.API_TOKEN }}
