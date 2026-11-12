@@ -6586,10 +6586,15 @@ int SV_SpawnServer(qboolean bIsDemo, char *server, char *startspot)
 	g_psv.edicts->v.solid = SOLID_BSP;
 	g_psv.edicts->v.movetype = MOVETYPE_PUSH;
 
-	if (coop.value == 0.0f)
+#ifdef REHLDS_FIXES
+	gGlobalVariables.deathmatch_ = coop.value != 0.0f ? 0.0f : deathmatch.value;
+	gGlobalVariables.coop_ = coop.value;
+#else
+	if(coop.value == 0.0f)
 		gGlobalVariables.deathmatch_ = deathmatch.value;
 	else
 		gGlobalVariables.coop_ = coop.value;
+#endif
 
 	gGlobalVariables.serverflags = g_psvs.serverflags;
 	gGlobalVariables.mapname = (size_t)g_psv.name - (size_t)pr_strings;
